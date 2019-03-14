@@ -1,0 +1,29 @@
+extends meta
+
+block body
+    div.ui.fixed.inverted.menu
+        div#top-bar.ui.container
+            a.header.item(href=`${webURL}/`) Animation Board
+            a.item(href=`${webURL}/index/`) 主页
+            a.item(href=`${webURL}/personal/diaries/`, v-if='profile.is_authenticated') 日记
+            a.item(href=`${webURL}/personal/comments/`) 评论
+            a.item(href=`${webURL}/statistics/`, v-if='profile.is_authenticated') 统计
+            div.ui.simple.dropdown.item
+                a(href=`${webURL}/database/#/`) 数据库
+                i.dropdown.icon
+                div.menu
+                    a.item(href=`${webURL}/database/#/animations/`) 番剧
+                    a.item(href=`${webURL}/database/#/staffs/`) STAFF
+                    a.item(href=`${webURL}/database/#/tags/`) 标签
+            a.item.right(href=`${webURL}/login/`, v-if='!profile.is_authenticated') 登录
+            a.item(href=`${webURL}/register/`, v-if='!profile.is_authenticated') 注册
+            div.ui.simple.dropdown.item.right(v-if='profile.is_authenticated')
+                a(href=`${webURL}/profile/#/`) {{profile.name}}
+                i.dropdown.icon
+                div.menu
+                    a.item(href=`${webURL}/profile/#/setting`) 偏好设置
+                    a.item(href=`${webURL}/admin/`, v-if='profile.is_staff') 管理人员界面
+                    a.item(@click='logout') 退出登录
+    div(style='padding-top: 72px')
+        block content
+    script(src=`${staticURL}/js/views/layout.js`)

@@ -1,0 +1,36 @@
+extends meta
+block title
+    = `新用户注册 - ${title}`
+
+block body
+    style.
+        body {background-color: #CACACA}
+        body > .grid {height: 100%}
+        .column {max-width: 450px}
+    div#main.ui.middle.aligned.center.aligned.grid
+        div.column
+            div.ui.message 新用户注册
+            form.ui.large.form
+                div.ui.stacked.segment
+                    div.field
+                        div.ui.left.icon.input
+                            i.user.icon
+                            input(type='text', placeholder='用户名', v-model='username')
+                    div.field
+                        div.ui.left.icon.input
+                            i.user.circle.icon
+                            input(type='text', placeholder='昵称', v-model='name')
+                    div.field
+                        div.ui.left.icon.input
+                            i.lock.icon
+                            input(type='password', placeholder='密码', v-model='password')
+                    div.field
+                        div.ui.left.icon.input
+                            i.lock.icon
+                            input(type='password', placeholder='确认密码', v-model='passwordCheck')
+                    div.field
+                        div.ui.left.icon.input
+                            i.key.icon
+                            input(type='text', placeholder='[限制注册模式]注册码', v-model='code')
+                    div.ui.fluid.large.blue.submit.button(@click='register') 注册
+            div.ui.error.message(v-if='error') {{error}}

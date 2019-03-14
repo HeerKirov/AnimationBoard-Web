@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "outDir": "public/js",
+    "module": "commonjs",
+    "target": "es5",
+    "moduleResolution": "classic",
+    "removeComments": true,
+    "noImplicitReturns": true,
+    "allowJs": true
+  },
+  "include": ["frontend/**/*.*"]
+}

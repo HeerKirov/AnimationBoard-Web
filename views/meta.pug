@@ -1,0 +1,22 @@
+doctype html
+html
+  head
+    title
+      block title
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0, maximum-scale=1.0')
+    link(rel='stylesheet', href=`${staticURL}/lib/semantic/dist/semantic.min.css`)
+    script(src=`${staticURL}/lib/jquery/dist/jquery.min.js`)
+    script(src=`${staticURL}/lib/vue/dist/vue.min.js`)
+    script(src=`${staticURL}/lib/semantic/dist/semantic.min.js`)
+    script(src=`${staticURL}/lib/axios/dist/axios.min.js`)
+    script(src=`${staticURL}/js/core/sdk.js`)
+    script
+      = `window['webURL'] = '${webURL}'\n`
+      = `window['serverURL'] = '${serverURL}'\n`
+      = `window['client'] = new Client({serverURL})\n`
+      = `window['vms'] = {}`
+    block import
+  body
+    block body
+  script(src=`${staticURL}/js/views/${selfLocation}.js`)

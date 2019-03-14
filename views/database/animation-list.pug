@@ -1,0 +1,77 @@
+//上方工具栏
+div.ui.menu
+    div.ui.pointing.dropdown.item.dropdown-menu 番剧
+        i.dropdown.icon
+        div.menu
+            a.item(href=`${webURL}/database/#/staffs/`) STAFF
+            a.item(href=`${webURL}/database/#/tags/`) 标签
+    a.ui.icon.item(href=`#/animations/new/`, v-if='isStaff')
+        i(style='margin-right: 5px').plus.icon
+        = '新建'
+    div.right.ui.floating.dropdown.icon.item.dropdown-menu
+        span {{sort.title}}
+        i(style='margin-left: 5px', :class='sort.desc ? "sort amount down icon" : "sort amount up icon"')
+        div.menu
+            div.item(v-for='(choice, index) in sortChoices', value='choice.value', @click='sortBy(index)') 按{{choice.title}}
+    a.ui.browse.icon.item(@click='filter.show = !filter.show', :class='{active: filter.show}')
+        i.filter.icon
+    div.menu
+        div.item
+            div.ui.transparent.icon.input
+                input(type='text', placeholder='搜索…', v-model='filter.searchText', @keydown.enter='query')
+                i.search.link.icon
+//过滤器栏
+div.ui.segment(v-show='filter.show')
+    div.ui.grid
+        div.seven.wide.column
+            h5.ui.header 标签
+            select.ui.fluid.search.dropdown.dropdown-select(multiple='', v-model='filter.tags')
+                option(value='a') TAG
+        div.three.wide.column
+            h5.ui.header 放送类型
+            select.ui.fluid.search.dropdown.dropdown-select(v-model='filter.publishType')
+                option(value=' ') <全部>
+                option(v-for='choice in publishTypeChoices', :value='choice.value') {{choice.title}}
+        div.three.wide.column
+            h5.ui.header 原作类型
+            select.ui.fluid.search.dropdown.dropdown-select(v-model='filter.originalWorkType')
+                option(value=' ') <全部>
+                option(v-for='choice in originalWorkTypeChoices', :value='choice.value') {{choice.title}}
+        div.two.wide.column
+            h5.ui.header 限制级
+            select.ui.fluid.search.dropdown.dropdown-select(v-model='filter.limitLevel')
+                option(value=' ') <全部>
+                option(v-for='choice in limitLevelChoices', :value='choice.value') {{choice.title}}
+        div.right.one.wide.column
+            h5.ui.header(style='visibility: hidden') submit
+            button.ui.icon.button(@click='query')
+                i.check.icon
+//内容展示区
+div.ui.segment(style='height: 400px')
+    //上方的分页器
+    div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+        div.right.aligned.column
+            div.ui.small.basic.buttons
+                button.ui.icon.button(@click='pageTo("first")')
+                    i.angle.double.left.icon
+                button.ui.icon.button(@click='pageTo("prev")')
+                    i.angle.left.icon
+                button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                button.ui.icon.button(@click='pageTo("next")')
+                    i.angle.right.icon
+                button.ui.icon.button(@click='pageTo("last")')
+                    i.angle.double.right.icon
+
+    //下方的分页器
+    div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+        div.right.aligned.column
+            div.ui.small.basic.buttons
+                button.ui.icon.button(@click='pageTo("first")')
+                    i.angle.double.left.icon
+                button.ui.icon.button(@click='pageTo("prev")')
+                    i.angle.left.icon
+                button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                button.ui.icon.button(@click='pageTo("next")')
+                    i.angle.right.icon
+                button.ui.icon.button(@click='pageTo("last")')
+                    i.angle.double.right.icon

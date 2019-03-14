@@ -1,0 +1,21 @@
+extends layout
+
+block title
+    = `数据库 - ${title}`
+
+block import
+    script(src=`${staticURL}/js/core/database.js`)
+    script(src=`${staticURL}/js/views/database/animation-list.js`)
+    //script(src=`${staticURL}/js/views/database/animation-new.js`)
+    //script(src=`${staticURL}/js/views/database/animation-detail.js`)
+
+block content
+    style.
+        .view-div {display: none}
+    div#main.ui.container
+        div#animation-list.view-div
+            include database/animation-list
+        div#not-found.ui.placeholder.segment.view-div(style='display: none')
+            div.ui.icon.header
+                i.close.icon
+                = '404 Not Found'

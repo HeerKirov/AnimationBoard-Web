@@ -1,0 +1,23 @@
+{
+  "name": "animationboard-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build-backend": "tsc --build tsconfig.json",
+    "build-frontend": "tsc --build tsconfig-frontend.json",
+    "start": "node ./target/bin/www.js"
+  },
+  "dependencies": {
+    "@types/cookie-parser": "~1.4.1",
+    "@types/express": "~4.16.1",
+    "@types/morgan": "~1.7.35",
+    "@types/node": "~11.11.0",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "~4.16.0",
+    "http-errors": "~1.6.2",
+    "morgan": "~1.9.0",
+    "pug": "2.0.0-beta11",
+    "typescript": "~3.3.3333"
+  }
+}

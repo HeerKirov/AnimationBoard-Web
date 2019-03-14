@@ -1,0 +1,25 @@
+extends meta
+block title
+    = `登录 - ${title}`
+
+block body
+    style.
+        body {background-color: #DADADA}
+        body > .grid {height: 100%}
+        .column {max-width: 450px}
+    div#main.ui.middle.aligned.center.aligned.grid
+        div.column
+            form.ui.large.form
+                div.ui.stacked.segment
+                    div.field
+                        div.ui.left.icon.input
+                            i.user.icon
+                            input(type='text', placeholder='用户名', v-model='username')
+                    div.field
+                        div.ui.left.icon.input
+                            i.lock.icon
+                            input(type='password', placeholder='密码', v-model='password', @keydown.enter='login')
+                    div.ui.fluid.large.blue.submit.button(@click='login') 登录
+            div.ui.error.message(v-if='error') {{error}}
+            div.ui.message 新用户
+                a(href=`${webURL}/register/`) 注册
