@@ -6,8 +6,8 @@ block title
 block import
     script(src=`${staticURL}/js/core/database.js`)
     script(src=`${staticURL}/js/views/database/animation-list.js`)
-    //script(src=`${staticURL}/js/views/database/animation-new.js`)
-    //script(src=`${staticURL}/js/views/database/animation-detail.js`)
+    script(src=`${staticURL}/js/views/database/animation-new.js`)
+    script(src=`${staticURL}/js/views/database/animation-detail.js`)
 
 block content
     style.
@@ -15,6 +15,10 @@ block content
     div#main.ui.container
         div#animation-list.view-div
             include database/animation-list
+        div#animation-new.view-div
+            include database/animation-new
+        div#animation-detail.view-div
+            include database/animation-detail
         div#not-found.ui.placeholder.segment.view-div(style='display: none')
             div.ui.icon.header
                 i.close.icon

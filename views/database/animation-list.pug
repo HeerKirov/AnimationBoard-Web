@@ -5,39 +5,52 @@ div.ui.menu
         div.menu
             a.item(href=`${webURL}/database/#/staffs/`) STAFF
             a.item(href=`${webURL}/database/#/tags/`) 标签
-    a.ui.icon.item(href=`#/animations/new/`, v-if='isStaff')
-        i(style='margin-right: 5px').plus.icon
-        = '新建'
-    div.right.ui.floating.dropdown.icon.item.dropdown-menu
+    a.right.ui.icon.item(@click='view.toggleOn = !view.toggleOn')
+        i.eye.icon(v-if='!view.toggleOn')
+        i.chevron.circle.right.icon(v-if='view.toggleOn')
+    div.ui.floating.dropdown.icon.item.dropdown-menu(v-show='view.toggleOn && view.detailOn')
+        span {{view.detailModeTitle}}
+        i.table.icon(style='margin-left: 5px')
+        div.menu
+            div.item(@click='view.detailMode = "OVERVIEW"; view.detailModeTitle = "概览"') 概览
+            div.item(@click='view.detailMode = "INFO"; view.detailModeTitle = "介绍信息"') 介绍信息
+            div.item(@click='view.detailMode = "MAKE"; view.detailModeTitle = "原作和制作"') 原作和制作
+    div.item(v-if='view.toggleOn')
+        div.ui.toggle.checkbox
+            input(type='checkbox', v-model='view.detailOn')
+            label 详情模式
+    div.ui.floating.dropdown.icon.item.dropdown-menu
         span {{sort.title}}
         i(style='margin-left: 5px', :class='sort.desc ? "sort amount down icon" : "sort amount up icon"')
         div.menu
-            div.item(v-for='(choice, index) in sortChoices', value='choice.value', @click='sortBy(index)') 按{{choice.title}}
-    a.ui.browse.icon.item(@click='filter.show = !filter.show', :class='{active: filter.show}')
+            div.item(v-for='(choice, index) in sortChoices', @click='sortBy(index)') 按{{choice.title}}
+    a.ui.icon.item(@click='filter.show = !filter.show', :class='{active: filter.show}')
         i.filter.icon
     div.menu
         div.item
             div.ui.transparent.icon.input
                 input(type='text', placeholder='搜索…', v-model='filter.searchText', @keydown.enter='query')
                 i.search.link.icon
+    a.ui.icon.item(href=`#/animations/new/`, v-if='isStaff')
+        i.plus.icon
 //过滤器栏
 div.ui.segment(v-show='filter.show')
     div.ui.grid
-        div.seven.wide.column
+        div.six.wide.column
             h5.ui.header 标签
             select.ui.fluid.search.dropdown.dropdown-select(multiple='', v-model='filter.tags')
-                option(value='a') TAG
+                option(v-for='tag in filter.tagsList', :value='tag.name') {{tag.name}}
         div.three.wide.column
             h5.ui.header 放送类型
-            select.ui.fluid.search.dropdown.dropdown-select(v-model='filter.publishType')
+            select.ui.fluid.dropdown.dropdown-select(v-model='filter.publishType')
                 option(value=' ') <全部>
                 option(v-for='choice in publishTypeChoices', :value='choice.value') {{choice.title}}
         div.three.wide.column
             h5.ui.header 原作类型
-            select.ui.fluid.search.dropdown.dropdown-select(v-model='filter.originalWorkType')
+            select.ui.fluid.dropdown.dropdown-select(v-model='filter.originalWorkType')
                 option(value=' ') <全部>
                 option(v-for='choice in originalWorkTypeChoices', :value='choice.value') {{choice.title}}
-        div.two.wide.column
+        div.three.wide.column
             h5.ui.header 限制级
             select.ui.fluid.search.dropdown.dropdown-select(v-model='filter.limitLevel')
                 option(value=' ') <全部>
@@ -47,7 +60,7 @@ div.ui.segment(v-show='filter.show')
             button.ui.icon.button(@click='query')
                 i.check.icon
 //内容展示区
-div.ui.segment(style='height: 400px')
+div.ui.segment(v-if='panel.errorInfo == null')
     //上方的分页器
     div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
         div.right.aligned.column
@@ -61,9 +74,48 @@ div.ui.segment(style='height: 400px')
                     i.angle.right.icon
                 button.ui.icon.button(@click='pageTo("last")')
                     i.angle.double.right.icon
-
+    //表格内容
+        概览：标题 标签 放送状况 发布时间 放送类型 限制级
+        介绍信息：标题 标签 其他标题 关键字 限制级
+        原作和制作：标题 标签 放送类型 原作类型 原作者 制作公司 监督
+    table.ui.very.basic.table
+        thead
+            tr
+                th 标题
+                th 标签
+                th(v-if='view.detailMode === "INFO"') 其他标题
+                th(v-if='view.detailMode === "INFO"') 关键字
+                th(v-if='view.detailMode === "OVERVIEW"') 放送状况
+                th(v-if='view.detailMode === "OVERVIEW"') 发布时间
+                th(v-if='view.detailMode === "OVERVIEW" || view.detailMode === "MAKE"') 放送类型
+                th(v-if='view.detailMode === "MAKE"') 原作类型
+                th(v-if='view.detailMode === "MAKE"') 原作者
+                th(v-if='view.detailMode === "MAKE"') 制作公司
+                th(v-if='view.detailMode === "MAKE"') STAFF
+                th(v-if='view.detailMode === "OVERVIEW" || view.detailMode === "INFO"') 限制级
+        tbody
+            tr(v-for='item in data')
+                td
+                    a(:href='animationDetailURL(item.id)') {{item.title}}
+                td
+                    a.ui.tag.label(v-for='tag in item.tags', :href='tagDetailURL(tag)') {{tag}}
+                td(v-if='view.detailMode === "INFO"') {{titleCol(item.origin_title, item.other_title)}}
+                td(v-if='view.detailMode === "INFO"') {{item.keyword}}
+                td(v-if='view.detailMode === "OVERVIEW"') {{playStatus(item.published_quantity, item.sum_quantity)}}
+                td(v-if='view.detailMode === "OVERVIEW"') {{item.publish_time}}
+                td(v-if='view.detailMode === "OVERVIEW" || view.detailMode === "MAKE"') {{publishTypeEnums[item.publish_type]}}
+                td(v-if='view.detailMode === "MAKE"') {{originalWorkTypeEnums[item.original_work_type]}}
+                td(v-if='view.detailMode === "MAKE"')
+                    a.ui.label(v-for='staff in item.original_work_authors', :href='staffDetailURL(staff)') {{item.staff_info[staff].name}}
+                td(v-if='view.detailMode === "MAKE"')
+                    a.ui.label(v-for='staff in item.staff_companies', :href='staffDetailURL(staff)') {{item.staff_info[staff].name}}
+                td(v-if='view.detailMode === "MAKE"')
+                    a.ui.label(v-for='staff in item.staff_supervisors', :href='staffDetailURL(staff)') {{item.staff_info[staff].name}}
+                td(v-if='view.detailMode === "OVERVIEW" || view.detailMode === "INFO"') {{limitLevelEnums[item.limit_level]}}
     //下方的分页器
-    div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+    div.ui.two.column.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+        div.left.aligned.column
+            label 共{{pagination.count}}条记录
         div.right.aligned.column
             div.ui.small.basic.buttons
                 button.ui.icon.button(@click='pageTo("first")')
@@ -75,3 +127,9 @@ div.ui.segment(style='height: 400px')
                     i.angle.right.icon
                 button.ui.icon.button(@click='pageTo("last")')
                     i.angle.double.right.icon
+    div.ui.inverted.dimmer(:class='{active: panel.loading}')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='panel.errorInfo != null')
+    div.ui.icon.header
+        i.times.icon
+        = '{{panel.errorInfo}}'

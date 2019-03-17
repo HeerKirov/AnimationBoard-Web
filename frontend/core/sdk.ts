@@ -28,48 +28,59 @@ class Client {
         }
     }
 
+    private static callbackSuccess(callback: (success: boolean, status: number, data: any) => void, response: any): void {
+        callback(true, response.status, response.data)
+    }
+    private static callbackFailed(callback: (success: boolean, status: number, data: any) => void, error: any): void {
+        if(error.response) {
+            callback(false, error.response.status, error.response.data)
+        }else{
+            callback(false, null, null)
+        }
+    }
+
     private generateMethod(method: string, url: string) {
         return {
             list: (url: string) => (params, callback) =>
                 this.instance.get(this.getURL(url), {params, headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data)),
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error)),
             create: (url: string) => (content, callback) =>
                 this.instance.post(this.getURL(url), content, {headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data)),
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error)),
             retrieve: (url: string) => (id, callback) =>
                 this.instance.get(this.getDetailURL(url, id), {headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data)),
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error)),
             update: (url: string) => (id, content, callback) =>
                 this.instance.put(this.getDetailURL(url, id), content, {headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data)),
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error)),
             partialUpdate: (url: string) => (id, content, callback) =>
                 this.instance.patch(this.getDetailURL(url, id), content, {headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data)),
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error)),
             delete: (url: string) => (id, callback) =>
                 this.instance.delete(this.getDetailURL(url, id), {headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data)),
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error)),
             get: (url: string) => (callback) =>
                 this.instance.get(this.getURL(url), {headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data)),
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error)),
             post: (url: string) => (content, callback) =>
                 this.instance.post(this.getURL(url), content, {headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data)),
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error)),
             put: (url: string) => (content, callback) =>
                 this.instance.put(this.getURL(url), content, {headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data)),
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error)),
             patch: (url) => (content, callback) =>
                 this.instance.patch(this.getURL(url), content, {headers: this.getHeaders()})
-                    .then((response) => callback(true, response.status, response.data))
-                    .catch((error) => callback(false, error.response.status, error.response.data))
+                    .then((response) => Client.callbackSuccess(callback, response))
+                    .catch((error) => Client.callbackFailed(callback, error))
         }[method](url)
     }
 

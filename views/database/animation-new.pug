@@ -1,0 +1,206 @@
+//上方工具栏
+div.ui.menu
+    a.ui.icon.item(href='#/animations/')
+        i.angle.left.icon
+    div.ui.item 新建番剧
+    a.ui.right.icon.item(v-if='!ui.forbidden', @click='submit')
+        i.check.icon(style='margin-right: 5px')
+        = '提交并保存'
+div.ui.segment(v-if='!ui.forbidden')
+    div.ui.grid
+        div.two.wide.column
+        div.twelve.wide.column
+            div.ui.form
+                div.field
+                    label 标题
+                    input(type='text', placeholder='标题', v-model='data.title')
+                    div.ui.pointing.red.basic.label(v-if='ui.error.title') {{ui.error.title}}
+                div.fields
+                    div.eight.wide.field
+                        label 原语言标题*
+                        input(type='text', placeholder='原语言标题', v-model='data.originTitle')
+                        div.ui.pointing.red.basic.label(v-if='ui.error.originTitle') {{ui.error.originTitle}}
+                    div.eight.wide.field
+                        label 其他标题*
+                        input(type='text', placeholder='其他标题', v-model='data.otherTitle')
+                        div.ui.pointing.red.basic.label(v-if='ui.error.otherTitle') {{ui.error.otherTitle}}
+                //关联的番剧
+                div.ui.accordion.field
+                    div.title
+                        h4.ui.dividing.header
+                            i.dropdown.icon
+                            = '关联的番剧'
+                    div.content
+                        div.fields
+                            //TODO 完成番剧的关联系统
+                //制作信息
+                div.ui.accordion.field
+                    div.title
+                        h4.ui.dividing.header
+                            i.dropdown.icon
+                            = '制作信息'
+                    div.content
+                        div.fields
+                            div.seven.wide.field
+                                label 原作类型
+                                select.ui.fluid.dropdown.dropdown-select(v-model='data.originalWorkType')
+                                    option(value=' ') <不选择>
+                                    option(v-for='choice in originalWorkTypeChoices', :value='choice.value') {{choice.title}}
+                            div.eleven.wide.field
+                                label 原作者
+                                select.ui.fluid.search.dropdown.dropdown-select(multiple='', v-model='data.originalWorkAuthors')
+                                    option(v-for='staff in ui.staffListByPerson', :value='staff.id') {{staff.name}}
+                        div.fields
+                            div.seven.wide.field
+                                label STAFF
+                                select.ui.fluid.search.dropdown.dropdown-select(multiple='', v-model='data.staffSupervisors')
+                                    option(v-for='staff in ui.staffListByPerson', :value='staff.id') {{staff.name}}
+                            div.eleven.wide.field
+                                label 制作公司
+                                select.ui.fluid.search.dropdown.dropdown-select(multiple='', v-model='data.staffCompanies')
+                                    option(v-for='staff in ui.staffListByOrg', :value='staff.id') '{{staff.name}}'
+                        div.ui.grid
+                            div.right.aligned.column
+                                a(href='#/staffs/new/') 创建新的STAFF条目
+                //放送信息
+                div.ui.accordion.field
+                    div.title
+                        h4.ui.dividing.header(:class='{red: ui.error.duration || ui.error.sumQuantity || ui.error.publishedQuantity || ui.error.publishPlan || ui.error.subtitleList}')
+                            i.dropdown.icon
+                            = '放送信息'
+                    div.content
+                        div.fields
+                            div.five.wide.field
+                                label 放送类型
+                                select.ui.fluid.dropdown.dropdown-select(v-model='data.publishType')
+                                    option(v-for='choice in publishTypeChoices', :value='choice.value') {{choice.title}}
+                            div.six.wide.field
+                                label 发布时间
+                                div#publish-time-picker.ui.calendar
+                                    div.ui.input.left.icon
+                                        i.calendar.icon
+                                        input(type='text', placeholder='番剧首次放送的时间')
+                            div.five.wide.field
+                                label 单话时长(分钟)
+                                input(type='number', min='0', v-model='data.duration')
+                                div.ui.pointing.red.basic.label(v-if='ui.error.duration') {{ui.error.duration}}
+                        div.fields
+                            div.eight.wide.field
+                                label 总话数
+                                input(type='number', min='0', v-model='data.sumQuantity')
+                                div.ui.pointing.red.basic.label(v-if='ui.error.sumQuantity') {{ui.error.sumQuantity}}
+                            div.eight.wide.field
+                                label 已发布话数
+                                input(type='number', min='0', v-model='data.publishedQuantity')
+                                div.ui.pointing.red.basic.label(v-if='ui.error.publishedQuantity') {{ui.error.publishedQuantity}}
+                        div.fields
+                            div.eight.wide.field
+                                label 放送计划
+                                div.ui.fluid.small.buttons
+                                    button.ui.button.green(:class='{basic: ui.publishPlan.panel !== "GENERAL"}',
+                                        @click='ui.publishPlan.panel = (ui.publishPlan.panel === "GENERAL" ? null : "GENERAL")') 添加一个时间点
+                                    div.or(data-text='或')
+                                    button.ui.button.blue(:class='{basic: ui.publishPlan.panel !== "WEEK"}',
+                                    @click='ui.publishPlan.panel = (ui.publishPlan.panel === "WEEK" ? null : "WEEK")') 添加周期时间列
+                                div.ui.segment(v-show='ui.publishPlan.panel === "GENERAL"')
+                                    div#new-general-publish-plan-picker.ui.calendar
+                                        div.ui.action.input
+                                            input(type='text', placeholder='新的放送计划时间点')
+                                            button.ui.positive.basic.icon.button(@click='addNewGeneralPublishPlan')
+                                                i.check.icon
+                                div.ui.segment(v-show='ui.publishPlan.panel === "WEEK"')
+                                    div#new-week-publish-plan-picker.ui.calendar
+                                        div.ui.input.left.icon
+                                            i.calendar.icon
+                                            input(type='text', placeholder='序列的起始时间点')
+                                    div.fields
+                                        div.seven.wide.field
+                                            label 间隔日期(天)
+                                            input(type='number', min=1, v-model='ui.publishPlan.newWeekInterval')
+                                        div.seven.wide.field
+                                            label 项数
+                                            input(type='number', min=1, v-model='ui.publishPlan.newWeekItemCount')
+                                        div.field
+                                            label(style='visibility: hidden') submit
+                                            button.ui.positive.basic.icon.button(@click='addNewWeekPublishPlan')
+                                                i.check.icon
+                                div.ui.middle.aligned.divided.list(style='overflow: auto; max-height: 300px')
+                                    div.item(v-for='(item, index) in data.publishPlan') {{index + 1}}.  {{item}}
+                                        a.right.floated.icon(@click='removePublishPlan(index)')
+                                            i.times.icon
+                                div.ui.pointing.red.basic.label(v-if='ui.error.publishPlan') {{ui.error.publishPlan}}
+                            div.eight.wide.field
+                                label 子标题
+                                button.fluid.ui.small.green.basic.button(@click='addNewSubtitle')
+                                    i.plus.icon
+                                    = '新建项'
+                                div.ui.middle.aligned.list(style='overflow: auto; max-height: 300px')
+                                    div.item(v-for='(subtitle, index) in data.subtitleList')
+                                        div.ui.action.small.input
+                                            input(type='text', :placeholder='`第${index + 1}话的标题`', v-model='subtitle.value')
+                                            button.ui.negative.icon.button(@click='removeSubtitle(index)')
+                                                i.times.icon
+                                div.ui.pointing.red.basic.label(v-if='ui.error.subtitleList') {{ui.error.subtitleList}}
+
+                //介绍和评价
+                div.ui.accordion.field
+                    div.title
+                        h4.ui.dividing.header
+                            i.dropdown.icon
+                            = '介绍和评价'
+                    div.content
+                        div.field
+                            label 标签
+                            div.ui.segment
+                                div(style='padding-right: 50px; overflow: auto; max-height: 300px')
+                                    div.ui.tag.label(v-for='(tag, index) in data.tags') {{tag.name}}
+                                        i.delete.icon(@click='removeTag(index)')
+                                div.ui.tag.label(v-if='!data.tags.length') 当前没有标签。
+                                button.ui.icon.button(style='position: absolute; right: 5px; top: 9px', :class='{basic: !ui.tagEditor.show}', @click='ui.tagEditor.show = !ui.tagEditor.show')
+                                    i.edit.icon
+                                    = '编辑'
+                                div(v-if='ui.tagEditor.show')
+                                    div.ui.divider
+                                    div.ui.transparent.icon.input
+                                        input(type='text', placeholder='搜索备选标签或创建新标签', v-model='ui.tagEditor.search', @keydown.enter='addSearchAsNewTag')
+                                        i.search.link.icon
+                                    div.ui.divider(style='margin-bottom: 0px')
+                                    h5.ui.header(style='margin-top: 5px') 备选标签
+                                    div(style='overflow: auto; max-height: 480px')
+                                        a.ui.tag.label(v-for='tag in ui.tagEditor.showResult', @click='addExistTag(tag)') {{tag.name}}
+                                    label(v-if='ui.tagEditor.searchFlag && ui.tagEditor.showResult.length') 没有合适的标签?
+                                        a(@click='addSearchAsNewTag') 将搜索内容创建为新的标签
+                                    label(v-if='ui.tagEditor.searchFlag && !ui.tagEditor.showResult.length') 没有搜索结果。
+                                        a(@click='addSearchAsNewTag') 将搜索内容创建为新的标签
+                                    label(v-if='!ui.tagEditor.searchFlag && !ui.tagEditor.tagList.length') 没有备选标签。
+
+                        div.fields
+                            div.eleven.wide.field
+                                label 关键字
+                                input(type='text', placeholder='用简单的词组描述番剧的特色', v-model='data.keyword')
+                            div.five.wide.field
+                                label 限制级
+                                select.ui.fluid.search.dropdown.dropdown-select(v-model='data.limitLevel')
+                                    option(value=' ') <不选择>
+                                    option(v-for='choice in limitLevelChoices', :value='choice.value') {{choice.title}}
+                        div.field
+                            label 简介
+                            textarea(v-model='data.introduction', placeholder='用简练的段落描述番剧的内容')
+                        div.field
+                            label 相关链接
+                            div.ui.middle.aligned.list
+                                div.item(v-for='(link, index) in data.links')
+                                    div.ui.action.input
+                                        input(type='text', placeholder='https://', v-model='link.value')
+                                        button.ui.negative.icon.button(@click='removeLink(index)')
+                                            i.times.icon
+                            button.fluid.ui.small.green.basic.button(@click='addNewLink')
+                                i.plus.icon
+                                = '新链接'
+        div.two.wide.column
+    div.ui.inverted.dimmer(:class='{active: ui.loading}')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='ui.forbidden')
+    div.ui.icon.header
+        i.times.icon
+        = '没有创建新条目的权限。'

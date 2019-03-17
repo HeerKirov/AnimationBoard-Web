@@ -6,7 +6,9 @@
     const webURL = window['webURL']
     //DATABASE vue 创建函数
     const createVue = {
-        'animation-list': window['createAnimationListVue']
+        'animation-list': window['createAnimationListVue'],
+        'animation-new': window['createAnimationNewVue'],
+        'animation-detail': window['createAnimationDetailVue'],
     }
     /**
      * 从hash中解析当前处于的面板状态。
@@ -16,21 +18,20 @@
      * #/animations/detail/1/   详情页。前后斜线都可省略
      * #/animations/new/        新建页。前后斜线都可省略
      */
-    function getHash(): {mode: 'detail' | 'list' | 'new', tab: string, id?: number, page?: number} {
+    function getHash(): {mode: 'detail' | 'list' | 'new', tab: string, id?: number | string} {
         const LIST_REGEX = /#?\/?([a-z]+)\/?/
-        const PAGE_REGEX = /#?\/?([a-z]+)\/([0-9]+)\/?/
-        const DETAIL_REGEX = /#?\/?([a-z]+)\/detail\/([0-9]+)\/?/
+        const DETAIL_REGEX = /#?\/?([a-z]+)\/detail\/([^\/]+)\/?/
         const NEW_REGEX = /#?\/?([a-z]+)\/new\/?/
         let hash = window.location.hash
         if(!hash) {
-            return {mode: 'list', tab: 'animations', page: 1}
+            return {mode: 'list', tab: 'animations'}
         }
         let found = hash.match(DETAIL_REGEX)
         if(found) {
             return {
                 mode: 'detail',
                 tab: found[1],
-                id: parseInt(found[2])
+                id: decodeURIComponent(found[2])
             }
         }
         found = hash.match(NEW_REGEX)
@@ -40,23 +41,14 @@
                 tab: found[1]
             }
         }
-        found = hash.match(PAGE_REGEX)
-        if(found) {
-            return {
-                mode: 'list',
-                tab: found[1],
-                page: parseInt(found[2])
-            }
-        }
         found = hash.match(LIST_REGEX)
         if(found) {
             return {
                 mode: 'list',
-                tab: found[1],
-                page: 1
+                tab: found[1]
             }
         }
-        return {mode: 'list', tab: 'animations', page: 1}
+        return {mode: 'list', tab: 'animations'}
     }
     /**
      * 从url hash中的tab和mode推断出适合的view name。
@@ -64,9 +56,9 @@
      * @param mode
      */
     function getViewName(tab: string, mode: string): string {
-        let stdTab = location.tab === 'animations' ? 'animation' :
-                location.tab === 'tags' ? 'tag' :
-                location.tab === 'staffs' ? 'staff' : null
+        let stdTab = tab === 'animations' ? 'animation' :
+                tab === 'tags' ? 'tag' :
+                tab === 'staffs' ? 'staff' : null
         return stdTab && mode ? `${stdTab}-${mode}` : null
     }
     /**
@@ -85,21 +77,30 @@
      * hash发生更改时触发事件。
      */
     function hashChanged() {
-        let {mode, tab, id, page} = getHash()
-        if(tab != location.tab || id != location.id || page != location.page || mode != location.mode) {
+        let {mode, tab, id} = getHash()
+        if(tab != location.tab || id != location.id || mode != location.mode) {
             let oldViewName = getViewName(location.tab, location.mode)
-            if(oldViewName && oldViewName in vms) {
-                let leave = vms[oldViewName].leave
-                if(typeof leave === 'function') leave()
-            }
-            location.mode = mode
-            location.tab = tab
-            location.page = page
-            location.id = id
-            let newViewName = getViewName(location.tab, location.mode)
-            if(newViewName && newViewName in vms) {
-                let load = vms[newViewName].load
-                if(typeof load === 'function') load()
+            let newViewName = getViewName(tab, mode)
+            if(oldViewName != newViewName) {
+                if(oldViewName && oldViewName in vms) {
+                    let leave = vms[oldViewName].leave
+                    if(typeof leave === 'function') leave()
+                }
+                location.mode = mode
+                location.tab = tab
+                location.id = id
+                if(newViewName && newViewName in vms) {
+                    let load = vms[newViewName].load
+                    if(typeof load === 'function') load()
+                }
+            }else{
+                location.mode = mode
+                location.tab = tab
+                location.id = id
+                if(newViewName && newViewName in vms) {
+                    let refresh = vms[newViewName].refresh
+                    if(typeof refresh === 'function') refresh()
+                }
             }
             tabView()
         }
@@ -108,7 +109,6 @@
     let location = {
         mode: null,
         tab: null,
-        page: undefined,
         id: undefined
     }
     let vms = {}
@@ -127,6 +127,7 @@
 
     //semantic ui初始化区
     $('#main .ui.dropdown.dropdown-menu').dropdown({action: 'hide'})
-    $('#main .ui.dropdown.dropdown-select').dropdown()
+    $('#main .ui.dropdown.dropdown-select').dropdown({fullTextSearch: true})
+    $('#main .accordion').accordion()
 
 })()

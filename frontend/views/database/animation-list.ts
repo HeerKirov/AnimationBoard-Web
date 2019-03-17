@@ -1,9 +1,10 @@
-function createAnimationListVue(selectName: string, location: {mode: string, tab: string, id: number, page: number}) {
+function createAnimationListVue(selectName: string, location: {mode: string, tab: string, id: number | string}) {
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
     const webURL = window['webURL']
 
+    const PAGE_LIMIT_IN_TABLE = 15
     const SORT_CHOICE = [
         {value: 'publish_time', title: '发布时间'},
         {value: 'create_time', title: '创建时间'},
@@ -45,6 +46,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
         return null
     }
 
+    //TODO 添加图片Grid的缩略图模式
     let vm = new Vue({
         el: selectName,
         data: {
@@ -54,7 +56,8 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                 publishType: ' ',
                 originalWorkType: ' ',
                 limitLevel: ' ',
-                tags: []
+                tags: [],
+                tagsList: []
             },
             sort: {
                 title: SORT_CHOICE[0].title,
@@ -62,13 +65,23 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                 desc: true
             },
             pagination: {
-                pageIndex: 1,   //当前页码
-                pageLimit: 10,   //每页的最大条目数量
-                count: 0,       //当前项目在数据库中的总数量
-                maxPageIndex: 1,//计算得到的最大页码数
-                navigator: []   //生成的页码方案，方便绑定直接跳转页码
+                pageIndex: null,   //当前页码
+                pageLimit: PAGE_LIMIT_IN_TABLE,     //每页的最大条目数量
+                count: 0,          //当前项目在数据库中的总数量
+                maxPageIndex: 1,   //计算得到的最大页码数
+                navigator: []      //生成的页码方案，方便绑定直接跳转页码
             },
-            data: []
+            data: [],
+            view: {
+                toggleOn: false,
+                detailOn: true,
+                detailMode: 'OVERVIEW',
+                detailModeTitle: '概览'
+            },
+            panel: {
+                loading: false,
+                errorInfo: null
+            }
         },
         computed: {
             sortChoices() {
@@ -77,21 +90,52 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
             publishTypeChoices() {
                 return PUBLISH_TYPE_CHOICE
             },
+            publishTypeEnums() {
+                let ret = {}
+                for(let {value, title} of PUBLISH_TYPE_CHOICE) {
+                    ret[value] = title
+                }
+                return ret
+            },
             originalWorkTypeChoices() {
                 return ORIGINAL_WORK_TYPE_CHOICE
             },
+            originalWorkTypeEnums() {
+                let ret = {}
+                for(let {value, title} of ORIGINAL_WORK_TYPE_CHOICE) {
+                    ret[value] = title
+                }
+                return ret
+            },
             limitLevelChoices() {
                 return LIMIT_LEVEL_CHOICE
+            },
+            limitLevelEnums() {
+                let ret = {}
+                for(let {value, title} of LIMIT_LEVEL_CHOICE) {
+                    ret[value] = title
+                }
+                return ret
             },
             isStaff() {
                 return window['vms']['top-bar'].profile.is_staff
             }
         },
+        watch: {
+            'view.detailOn': function (val) {
+                window.localStorage['animation-list.view.detail-on'] = val
+            },
+            'view.detailMode': function (val) {
+                window.localStorage['animation-list.view.detail-mode'] = val
+            }
+        },
         methods: {
             //系统事件
             load() {
-                //TODO 更新标签待选列表
+                this.panel.errorInfo = null
+                this.panel.loading = false
                 this.query()
+                this.updateTagList()
             },
             leave() {
 
@@ -113,9 +157,10 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                 }else if(pageIndex === 'prev') {
                     goal = this.pagination.pageIndex > 1 ? this.pagination.pageIndex - 1 : 1
                 }else if(pageIndex === 'next') {
-                    goal = this.pagination.pageIndex < this.pagination.maxPageIndex ? this.pagination.pageIndex + 1 : this.pagination.maxPageIndex
+                    goal = this.pagination.pageIndex < this.pagination.maxPageIndex ? this.pagination.pageIndex + 1 :
+                        this.pagination.maxPageIndex > 0 ? this.pagination.maxPageIndex : 1
                 }else if(pageIndex === 'last') {
-                    goal = this.pagination.maxPageIndex
+                    goal = this.pagination.maxPageIndex > 0 ? this.pagination.maxPageIndex : 1
                 }else if(typeof pageIndex === 'string') {
                     goal = parseInt(pageIndex)
                 }else if(typeof pageIndex === 'number') {
@@ -130,31 +175,56 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
             },
             //处理逻辑
             query() {
+                this.panel.loading = true
                 let params = {
                     original_work_type: this.filter.originalWorkType.trim() || undefined,
                     publish_type: this.filter.publishType.trim() || undefined,
                     limit_level: this.filter.limitLevel.trim() || undefined,
                     search: this.filter.searchText.trim() || undefined,
-                    tags_name: generateJoinArray(this.filter.tags) || undefined,
+                    tags__name: generateJoinArray(this.filter.tags) || undefined,
                     ordering: `${this.sort.desc ? '-' : ''}${SORT_CHOICE[this.sort.by].value}`,
                     limit: this.pagination.pageLimit,
                     offset: (this.pagination.pageIndex - 1) * this.pagination.pageLimit
                 }
                 client.database.animations.list(params, (ok, s, d) => {
                     if(ok) {
+                        let data, count
                         if('results' in d && 'count' in d) {
-                            this.data = d['results']
-                            this.pagination.count = d['count']
+                            data = d['results']
+                            count = d['count']
                         }else{
-                            this.data = d
-                            this.pagination.count = d.length
+                            data = d
+                            count = d.length
                         }
+                        this.data = this.format(data)
+                        this.pagination.count = count
                         this.generatePaginationNavigator()
                     }else{
-                        //TODO 错误面板
-                        console.warn(`ERROR ${s}: ${d}`)
+                        this.panel.errorInfo = s === 400 ? '数据获取格式发生错误。' :
+                                                s === 401 ? '未登录。请首先登录以获取权限。' :
+                                                s === 403 ? '您的账户不具备当前操作的权限。' :
+                                                s === 404 ? '未找到服务器地址。' :
+                                                s === 500 ? '服务器发生未知的内部错误。' :
+                                                s == null ? '无法连接到服务器。' :
+                                                            '发生未知的网络错误。'
                     }
+                    this.panel.loading = false
                 })
+            },
+            format(data: any[]): any[] {
+                for(let d of data) {
+                    if(d && 'staff_info' in d) {
+                        let staffInfo = d['staff_info']
+                        let newStaffInfo = {}
+                        for(let info of staffInfo) {
+                            if(info && 'id' in info && 'name' in info) {
+                                newStaffInfo[info.id] = info
+                            }
+                        }
+                        d['staff_info'] = newStaffInfo
+                    }
+                }
+                return data
             },
             generatePaginationNavigator() {
                 this.pagination.maxPageIndex = Math.ceil(this.pagination.count / this.pagination.pageLimit)
@@ -175,6 +245,64 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                     }
                     this.pagination.navigator = arr
                 }
+            },
+            updateTagList() {
+                client.database.tags.list({ordering: 'id'}, (ok, s, d) => {
+                    if(ok) {
+                        let tagsList = []
+                        for(let tag of d) {
+                            tagsList[tagsList.length] = {
+                                id: tag.id,
+                                name: tag.name
+                            }
+                        }
+                        this.filter.tagsList = tagsList
+                    }else{
+                        console.error('Cannot request for tag list.')
+                    }
+                })
+            },
+
+            //与表格构建有关的辅助函数
+            animationDetailURL(id: number): string {
+                return `#/animations/detail/${id}/`
+            },
+            tagDetailURL(tag: string): string {
+                return `#/tags/detail/${encodeURIComponent(tag)}/`
+            },
+            staffDetailURL(id: number): string {
+                return `#/staffs/detail/${id}/`
+            },
+            playStatus(publishedQuantity: number, sumQuantity: number): string {
+                if(sumQuantity == null) {
+                    return null
+                }else if(publishedQuantity == null) {
+                    return `预计共${sumQuantity}话`
+                }else if(publishedQuantity < sumQuantity) {
+                    return `发布${publishedQuantity}/${sumQuantity}话`
+                }else{
+                    return `全${sumQuantity}话`
+                }
+            },
+            titleCol(title1: string, title2: string): string {
+                if(title1 && title2) {
+                    return `${title1} / ${title2}`
+                }else if(title1) {
+                    return title1
+                }else{
+                    return title2
+                }
+            }
+        },
+        created() {
+            if(window.localStorage['animation-list.view.detail-on'] != null) {
+                let val = window.localStorage['animation-list.view.detail-on']
+                this.view.detailOn = val === "true" ? true : val === "false" ? false : !!val
+            }
+            if(window.localStorage['animation-list.view.detail-mode'] != null) {
+                this.view.detailMode = window.localStorage['animation-list.view.detail-mode']
+                this.view.detailModeTitle = this.view.detailMode === 'OVERVIEW' ? '概览' :
+                                            this.view.detailMode === 'INFO' ? '介绍信息' : '原作和制作'
             }
         }
     })
