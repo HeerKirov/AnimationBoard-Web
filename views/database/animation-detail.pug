@@ -1,0 +1,109 @@
+//上方工具栏
+div.ui.menu
+    a.ui.icon.item(href='#/animations/')
+        i.angle.left.icon
+    div.ui.item 番剧
+    a.ui.right.icon.item(v-if='isLogin && !ui.errorInfo')
+        i.flag.icon(style='margin-right: 5px')
+        = '{{detail.haveDiary ? "日记" : !detail.sumQuantity ? "预定追番" : detail.publishedQuantity === detail.sumQuantity ? "补番" : "追番"}}'
+    a.ui.icon.item(v-if='isLogin && !ui.errorInfo')
+        i.keyboard.icon(style='margin-right: 5px')
+        = '{{detail.haveComment ? "我的评价" : "发表评价"}}'
+    a.ui.icon.item(v-if='isStaff && !ui.errorInfo && !ui.editMode')
+        i.edit.icon(style='margin-right: 5px')
+        = '编辑'
+    a.ui.icon.item(v-if='isStaff && !ui.errorInfo && ui.editMode')
+        i.check.icon(style='margin-right: 5px')
+        = '提交并保存'
+div.ui.segment(v-show='!ui.errorInfo && !ui.editMode')
+    div.ui.grid
+        div.two.wide.column
+        div.twelve.wide.column
+            div.ui.form
+                div.field
+                    div.fields
+                        div.field(:class='detail.cover ? "twelve wide" : "sixteen wide"')
+                            div.field
+                                h1.text.ui.header(style='display: inline-block', v-if='!detail.subtitleList.length') {{detail.title}}
+                                div.ui.dropdown.dropdown-menu(v-show='detail.subtitleList.length')
+                                    h1.text.ui.header(style='display: inline-block') {{detail.title}}
+                                    div.menu
+                                        div.item(v-for='(t, index) in detail.subtitleList') 第
+                                            div.ui.circular.label(style='margin-right: 0', :class='{olive: detail.publishedQuantity && index + 1 <= detail.publishedQuantity}') {{index + 1}}
+                                            = '话  {{t}}'
+                                label(style='display: inline-block; vertical-align: top; margin-left: 10px') {{titleCol(detail.originTitle, detail.otherTitle)}}
+                            div.field(style='margin-bottom: 17px')
+                                label {{detail.keyword}}
+                            div.field
+                                a.ui.tag.label(v-for='tag in detail.tags') {{tag}}
+                        div.four.wide.field(style='padding: 0', v-if='detail.cover')
+                            img(:src='detail.cover', style='width: 100%')
+                div.field
+                    span {{detail.introduction}}
+                div.field
+                    div.fields
+                        div.field(:class='detail.relationList.length ? "twelve wide" : "sixteen wide"')
+                            div.fields
+                                div.field
+                                    div.ui.labeled.button
+                                        div.ui.small.button(:class='publishTypeClass[detail.publishType]', @click='ui.durationSwitch = !ui.durationSwitch') {{ui.durationSwitch && detail.duration ? `单集${detail.duration}分钟` : publishTypeEnums[detail.publishType]}}
+                                        div.ui.left.pointing.basic.label {{fmtPublishTime(detail.publishTime) || '放送时间待定'}}
+                                div.field
+                                    label(style='font-size: 15px; margin-top: 7px') {{playStatus(detail.publishedQuantity, detail.sumQuantity)}}
+                                div.field(v-show='detail.publishPlan.length')
+                                    div.ui.accordion
+                                        div.title
+                                            i.dropdown.icon
+                                            = '放送计划表'
+                                        div.content
+                                            div.ui.list(style='overflow: auto; max-height: 480px')
+                                                div.item(v-for='(plan, index) in detail.publishPlan')
+                                                    div.ui.green.circular.label(style='margin-right: 5px') {{(detail.publishedQuantity || 0) + index + 1}}
+                                                    = '{{fmtPublishPlan(plan)}}'
+                            div(v-if='showMaker(detail)')
+                                div.ui.divider
+                                div.fields(v-if='detail.originalWorkType || detail.originalWorkAuthors.length')
+                                    div.field
+                                        div.ui.tag.label(:class='originalWorkTypeClass[detail.originalWorkType] || "grey"') {{detail.originalWorkType ? originalWorkTypeEnums[detail.originalWorkType] : '原作者'}}
+                                    div.field
+                                        a.ui.label(v-for='staff in detail.originalWorkAuthors') {{staff.name}}
+                                div.fields(v-if='detail.staffCompanies.length')
+                                    div.field
+                                        div.ui.grey.tag.label 制作公司
+                                    div.field
+                                        a.ui.label(v-for='staff in detail.staffCompanies') {{staff.name}}
+                                div.fields(v-if='detail.staffSupervisors.length')
+                                    div.field
+                                        div.ui.grey.tag.label STAFF
+                                    div.field
+                                        a.ui.label(v-for='staff in detail.staffSupervisors') {{staff.name}}
+                            div(v-if='detail.links.length')
+                                div.ui.divider
+                                div.field
+                                    label 相关链接
+                                    div.ui.list
+                                        a.item(v-for='link in detail.links', :href='link', target='_blank')
+                                            i.linkify.icon(style='margin-right: 5px')
+                                            = '{{link}}'
+                        div.four.wide.field(v-if='detail.relationList.length', style='padding: 0')
+                            label 相关番剧
+                            div.ui.list
+                                div.item(v-for='relation in detail.relationList')
+                                    img.ui.image(:src='relation.cover', style='width: 25%')
+                                    div.content(style='padding-left: 5px; padding-top: 1px; position: absolute')
+                                        a.header(:href='animationDetailURL(relation.id)') {{relation.title}}
+                                        div.description(style='font-size: 12px') {{relation.relation}}
+        div.two.wide.column
+            div.ui.right.ribbon.label(v-if='detail.limitLevel', :class='limitLevelClass[detail.limitLevel]') {{limitLevelEnums[detail.limitLevel]}}
+    div.ui.inverted.dimmer(:class='{active: ui.loading}')
+        div.ui.loader
+div.ui.segment(v-show='!ui.errorInfo && ui.editMode')
+    div.ui.grid
+        div.two.wide.column
+        div.twelve.wide.column
+            div.ui.form
+        div.two.wide.column
+div.ui.placeholder.segment(v-if='ui.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{ui.errorInfo}}'

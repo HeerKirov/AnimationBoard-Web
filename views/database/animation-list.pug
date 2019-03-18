@@ -15,6 +15,10 @@ div.ui.menu
             div.item(@click='view.detailMode = "OVERVIEW"; view.detailModeTitle = "概览"') 概览
             div.item(@click='view.detailMode = "INFO"; view.detailModeTitle = "介绍信息"') 介绍信息
             div.item(@click='view.detailMode = "MAKE"; view.detailModeTitle = "原作和制作"') 原作和制作
+    div.item(v-if='view.toggleOn && !view.detailOn')
+        div.ui.slider.checkbox
+            input(type='checkbox', v-model='view.simpleCard')
+            label 简单卡片
     div.item(v-if='view.toggleOn')
         div.ui.toggle.checkbox
             input(type='checkbox', v-model='view.detailOn')
@@ -78,7 +82,17 @@ div.ui.segment(v-if='panel.errorInfo == null')
         概览：标题 标签 放送状况 发布时间 放送类型 限制级
         介绍信息：标题 标签 其他标题 关键字 限制级
         原作和制作：标题 标签 放送类型 原作类型 原作者 制作公司 监督
-    table.ui.very.basic.table
+    div.ui.five.columns.grid(v-show='!view.detailOn')
+        div.column(v-for='item in data')
+            div.ui.card
+                div.image
+                    img(:src='item.cover')
+                div.content
+                    a.header(:href='animationDetailURL(item.id)', style='font-size: 14px') {{item.title}}
+                    div.meta(v-if='!view.simpleCard && item.publish_time')
+                        span.date(style='font-size: 11px') {{fmtPublishTime(item.publish_time)}}
+                    label(v-if='!view.simpleCard', style='font-size: 11px') {{playStatus(item.published_quantity, item.sum_quantity)}}
+    table.ui.very.basic.table(v-show='view.detailOn')
         thead
             tr
                 th 标题
@@ -102,7 +116,7 @@ div.ui.segment(v-if='panel.errorInfo == null')
                 td(v-if='view.detailMode === "INFO"') {{titleCol(item.origin_title, item.other_title)}}
                 td(v-if='view.detailMode === "INFO"') {{item.keyword}}
                 td(v-if='view.detailMode === "OVERVIEW"') {{playStatus(item.published_quantity, item.sum_quantity)}}
-                td(v-if='view.detailMode === "OVERVIEW"') {{item.publish_time}}
+                td(v-if='view.detailMode === "OVERVIEW"') {{fmtPublishTime(item.publish_time)}}
                 td(v-if='view.detailMode === "OVERVIEW" || view.detailMode === "MAKE"') {{publishTypeEnums[item.publish_type]}}
                 td(v-if='view.detailMode === "MAKE"') {{originalWorkTypeEnums[item.original_work_type]}}
                 td(v-if='view.detailMode === "MAKE"')

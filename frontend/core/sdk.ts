@@ -6,7 +6,7 @@ class Client {
     private token: string
 
     constructor(params: {serverURL: string}) {
-        this.serverURL = params.serverURL
+        this.serverURL = params.serverURL + '/api'
         this.instance = window['axios'].create()
         if(window.localStorage[TOKEN_NAME]) {
             this.token = window.localStorage[TOKEN_NAME]

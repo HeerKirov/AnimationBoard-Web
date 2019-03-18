@@ -1,5 +1,5 @@
 module.exports = {
     'port': 8080,
     'prefix': 'animation-board/',
-    'serverURL': 'http://localhost:8000/animation-board/api'
+    'serverURL': 'http://localhost:8000/animation-board'
 }

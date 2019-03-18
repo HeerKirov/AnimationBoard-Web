@@ -3,8 +3,10 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
     const Vue = window['Vue']
     const client = window['client']
     const webURL = window['webURL']
+    const serverURL = window['serverURL']
 
-    const PAGE_LIMIT_IN_TABLE = 15
+    const PAGE_LIMIT_IN_TABLE = 20
+    const NO_COVER_URL = `${window['staticURL']}/images/no_cover.jpg`
     const SORT_CHOICE = [
         {value: 'publish_time', title: '发布时间'},
         {value: 'create_time', title: '创建时间'},
@@ -46,7 +48,6 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
         return null
     }
 
-    //TODO 添加图片Grid的缩略图模式
     let vm = new Vue({
         el: selectName,
         data: {
@@ -76,7 +77,8 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                 toggleOn: false,
                 detailOn: true,
                 detailMode: 'OVERVIEW',
-                detailModeTitle: '概览'
+                detailModeTitle: '概览',
+                simpleCard: false
             },
             panel: {
                 loading: false,
@@ -213,7 +215,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
             },
             format(data: any[]): any[] {
                 for(let d of data) {
-                    if(d && 'staff_info' in d) {
+                    if('staff_info' in d) {
                         let staffInfo = d['staff_info']
                         let newStaffInfo = {}
                         for(let info of staffInfo) {
@@ -222,6 +224,14 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                             }
                         }
                         d['staff_info'] = newStaffInfo
+                    }
+                    if('cover' in d) {
+                        let cover = d['cover']
+                        if(cover) {
+                            d['cover'] = `${serverURL}/static/cover/${cover}`
+                        }else{
+                            d['cover'] = NO_COVER_URL
+                        }
                     }
                 }
                 return data
@@ -279,7 +289,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                 }else if(publishedQuantity == null) {
                     return `预计共${sumQuantity}话`
                 }else if(publishedQuantity < sumQuantity) {
-                    return `发布${publishedQuantity}/${sumQuantity}话`
+                    return `${publishedQuantity}/${sumQuantity}话`
                 }else{
                     return `全${sumQuantity}话`
                 }
@@ -292,7 +302,16 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                 }else{
                     return title2
                 }
-            }
+            },
+            fmtPublishTime(time: string): string {
+                if(time) {
+                    let match = time.match(/([0-9]+)-([0-9]+)-([0-9]+)/)
+                    if(match) {
+                        return `${match[1]}年${match[2]}月`
+                    }
+                }
+                return time
+            },
         },
         created() {
             if(window.localStorage['animation-list.view.detail-on'] != null) {
