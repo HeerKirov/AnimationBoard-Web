@@ -3,18 +3,15 @@ div.ui.menu
     a.ui.icon.item(href='#/animations/')
         i.angle.left.icon
     div.ui.item 番剧
-    a.ui.right.icon.item(v-if='isLogin && !ui.errorInfo')
+    a.ui.right.icon.item(v-if='isLogin && !ui.errorInfo && !ui.editMode')
         i.flag.icon(style='margin-right: 5px')
         = '{{detail.haveDiary ? "日记" : !detail.sumQuantity ? "预定追番" : detail.publishedQuantity === detail.sumQuantity ? "补番" : "追番"}}'
-    a.ui.icon.item(v-if='isLogin && !ui.errorInfo')
+    a.ui.icon.item(v-if='isLogin && !ui.errorInfo && !ui.editMode')
         i.keyboard.icon(style='margin-right: 5px')
         = '{{detail.haveComment ? "我的评价" : "发表评价"}}'
-    a.ui.icon.item(v-if='isStaff && !ui.errorInfo && !ui.editMode')
+    a.ui.icon.item(v-if='isStaff && !ui.errorInfo && !ui.editMode', :href='animationEditURL(this.id)')
         i.edit.icon(style='margin-right: 5px')
         = '编辑'
-    a.ui.icon.item(v-if='isStaff && !ui.errorInfo && ui.editMode')
-        i.check.icon(style='margin-right: 5px')
-        = '提交并保存'
 div.ui.segment(v-show='!ui.errorInfo && !ui.editMode')
     div.ui.grid
         div.two.wide.column
@@ -35,7 +32,7 @@ div.ui.segment(v-show='!ui.errorInfo && !ui.editMode')
                             div.field(style='margin-bottom: 17px')
                                 label {{detail.keyword}}
                             div.field
-                                a.ui.tag.label(v-for='tag in detail.tags') {{tag}}
+                                a.ui.tag.label(v-for='tag in detail.tags', :href='tagDetailURL(tag)') {{tag}}
                         div.four.wide.field(style='padding: 0', v-if='detail.cover')
                             img(:src='detail.cover', style='width: 100%')
                 div.field
@@ -66,17 +63,17 @@ div.ui.segment(v-show='!ui.errorInfo && !ui.editMode')
                                     div.field
                                         div.ui.tag.label(:class='originalWorkTypeClass[detail.originalWorkType] || "grey"') {{detail.originalWorkType ? originalWorkTypeEnums[detail.originalWorkType] : '原作者'}}
                                     div.field
-                                        a.ui.label(v-for='staff in detail.originalWorkAuthors') {{staff.name}}
+                                        a.ui.label(v-for='staff in detail.originalWorkAuthors', :href='staffDetailURL(staff.id)') {{staff.name}}
                                 div.fields(v-if='detail.staffCompanies.length')
                                     div.field
                                         div.ui.grey.tag.label 制作公司
                                     div.field
-                                        a.ui.label(v-for='staff in detail.staffCompanies') {{staff.name}}
+                                        a.ui.label(v-for='staff in detail.staffCompanies', :href='staffDetailURL(staff.id)') {{staff.name}}
                                 div.fields(v-if='detail.staffSupervisors.length')
                                     div.field
                                         div.ui.grey.tag.label STAFF
                                     div.field
-                                        a.ui.label(v-for='staff in detail.staffSupervisors') {{staff.name}}
+                                        a.ui.label(v-for='staff in detail.staffSupervisors', :href='staffDetailURL(staff.id)') {{staff.name}}
                             div(v-if='detail.links.length')
                                 div.ui.divider
                                 div.field
@@ -97,12 +94,6 @@ div.ui.segment(v-show='!ui.errorInfo && !ui.editMode')
             div.ui.right.ribbon.label(v-if='detail.limitLevel', :class='limitLevelClass[detail.limitLevel]') {{limitLevelEnums[detail.limitLevel]}}
     div.ui.inverted.dimmer(:class='{active: ui.loading}')
         div.ui.loader
-div.ui.segment(v-show='!ui.errorInfo && ui.editMode')
-    div.ui.grid
-        div.two.wide.column
-        div.twelve.wide.column
-            div.ui.form
-        div.two.wide.column
 div.ui.placeholder.segment(v-if='ui.errorInfo')
     div.ui.icon.header
         i.times.icon

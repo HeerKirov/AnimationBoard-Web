@@ -1,29 +1,37 @@
 //上方工具栏
 div.ui.menu
-    a.ui.icon.item(href='#/animations/')
+    a.ui.icon.item(:href='editId ? animationDetailURL(this.editId) : "#/animations/"')
         i.angle.left.icon
-    div.ui.item 新建番剧
-    a.ui.right.icon.item(v-if='!ui.forbidden', @click='submit')
+    div.ui.item {{editId ? "编辑番剧" : "新建番剧"}}
+    a.ui.right.icon.item(v-if='!ui.errorInfo', @click='submit')
         i.check.icon(style='margin-right: 5px')
         = '提交并保存'
-div.ui.segment(v-if='!ui.forbidden')
+div.ui.segment(v-if='!ui.errorInfo')
     div.ui.grid
         div.two.wide.column
         div.twelve.wide.column
             div.ui.form
-                div.field
-                    label 标题
-                    input(type='text', placeholder='标题', v-model='data.title')
-                    div.ui.pointing.red.basic.label(v-if='ui.error.title') {{ui.error.title}}
                 div.fields
-                    div.eight.wide.field
-                        label 原语言标题*
-                        input(type='text', placeholder='原语言标题', v-model='data.originTitle')
-                        div.ui.pointing.red.basic.label(v-if='ui.error.originTitle') {{ui.error.originTitle}}
-                    div.eight.wide.field
-                        label 其他标题*
-                        input(type='text', placeholder='其他标题', v-model='data.otherTitle')
-                        div.ui.pointing.red.basic.label(v-if='ui.error.otherTitle') {{ui.error.otherTitle}}
+                    div.field(:class='editId ? "twelve wide" : "sixteen wide"')
+                        div.field
+                            label 标题
+                            input(type='text', placeholder='标题', v-model='data.title')
+                            div.ui.pointing.red.basic.label(v-if='ui.error.title') {{ui.error.title}}
+                        div.fields
+                            div.eight.wide.field
+                                label 原语言标题
+                                input(type='text', placeholder='原语言标题', v-model='data.originTitle')
+                                div.ui.pointing.red.basic.label(v-if='ui.error.originTitle') {{ui.error.originTitle}}
+                            div.eight.wide.field
+                                label 其他标题
+                                input(type='text', placeholder='其他标题', v-model='data.otherTitle')
+                                div.ui.pointing.red.basic.label(v-if='ui.error.otherTitle') {{ui.error.otherTitle}}
+                    div.four.wide.field(v-if='editId')
+                        div.ui.segment(style='height: 100%')
+                            h5.ui.header 上传新封面
+                            input#file-upload(type='file')
+                            div.ui.inverted.dimmer(:class='{active: ui.coverUploading}')
+                                div.ui.loader
                 //介绍和评价
                 div.ui.accordion.field
                     div.title
@@ -36,7 +44,7 @@ div.ui.segment(v-if='!ui.forbidden')
                             div.ui.segment
                                 div(style='padding-right: 50px; overflow: auto; max-height: 300px')
                                     div.ui.tag.label(v-for='(tag, index) in data.tags') {{tag.name}}
-                                        i.delete.icon(@click='removeTag(index)')
+                                        i.delete.icon(@click='removeTag(index)', v-if='ui.tagEditor.show')
                                 div.ui.tag.label(v-if='!data.tags.length') 当前没有标签。
                                 button.ui.icon.button(style='position: absolute; right: 5px; top: 9px', :class='{basic: !ui.tagEditor.show}', @click='ui.tagEditor.show = !ui.tagEditor.show')
                                     i.edit.icon
@@ -62,7 +70,7 @@ div.ui.segment(v-if='!ui.forbidden')
                                 input(type='text', placeholder='用简单的词组描述番剧的特色', v-model='data.keyword')
                             div.five.wide.field
                                 label 限制级
-                                select.ui.fluid.search.dropdown.dropdown-select(v-model='data.limitLevel')
+                                select#limit-level-picker.ui.fluid.search.dropdown.dropdown-select(v-model='data.limitLevel')
                                     option(value=' ') <不选择>
                                     option(v-for='choice in limitLevelChoices', :value='choice.value') {{choice.title}}
                         div.field
@@ -89,7 +97,7 @@ div.ui.segment(v-if='!ui.forbidden')
                         div.fields
                             div.five.wide.field
                                 label 放送类型
-                                select.ui.fluid.dropdown.dropdown-select(v-model='data.publishType')
+                                select#publish-type-picker.ui.fluid.dropdown.dropdown-select(v-model='data.publishType')
                                     option(v-for='choice in publishTypeChoices', :value='choice.value') {{choice.title}}
                             div.six.wide.field
                                 label 发布时间
@@ -165,28 +173,63 @@ div.ui.segment(v-if='!ui.forbidden')
                             i.dropdown.icon
                             = '制作信息'
                     div.content
-                        div.fields
-                            div.seven.wide.field
-                                label 原作类型
-                                select.ui.fluid.dropdown.dropdown-select(v-model='data.originalWorkType')
-                                    option(value=' ') <不选择>
-                                    option(v-for='choice in originalWorkTypeChoices', :value='choice.value') {{choice.title}}
-                            div.eleven.wide.field
-                                label 原作者
-                                select.ui.fluid.search.dropdown.dropdown-select(multiple='', v-model='data.originalWorkAuthors')
-                                    option(v-for='staff in ui.staffListByPerson', :value='staff.id') {{staff.name}}
-                        div.fields
-                            div.seven.wide.field
-                                label STAFF
-                                select.ui.fluid.search.dropdown.dropdown-select(multiple='', v-model='data.staffSupervisors')
-                                    option(v-for='staff in ui.staffListByPerson', :value='staff.id') {{staff.name}}
-                            div.eleven.wide.field
-                                label 制作公司
-                                select.ui.fluid.search.dropdown.dropdown-select(multiple='', v-model='data.staffCompanies')
-                                    option(v-for='staff in ui.staffListByOrg', :value='staff.id') '{{staff.name}}'
-                        div.ui.grid
-                            div.right.aligned.column
-                                a(href='#/staffs/new/') 创建新的STAFF条目
+                        div
+                            div(v-show='ui.staffEditor.show')
+                                div.field
+                                    label 编辑 {{ui.staffEditor.title}}
+                                    div.ui.segment
+                                        div(style='padding-right: 30px')
+                                            div.ui.label(v-for='(staff, index) in ui.staffEditor.currentList') {{staff.name}}
+                                                i.delete.icon(@click='removeStaff(index)')
+                                            div.ui.label(v-if='!ui.staffEditor.currentList || ui.staffEditor.currentList.length <= 0', style='background: #FFFFFF') 当前没有已选择项。
+                                        button.ui.basic.icon.button(style='position: absolute; right: 5px; top: 9px', @click='switchStaffEditor(null)')
+                                            i.check.icon
+                                        div.ui.divider
+                                        div.ui.transparent.icon.input
+                                            input(type='text', placeholder='搜索可选用的STAFF', v-model='ui.staffEditor.search')
+                                            i.search.link.icon
+                                        div.ui.divider
+                                        h5.ui.header(style='margin-top: 5px') STAFF列表
+                                        div(style='overflow: auto; max-height: 480px')
+                                            a.ui.tag.label(v-for='staff in ui.staffEditor.showResult', @click='addExistStaff(staff)') {{staff.name}}
+                                    div.ui.grid
+                                        div.right.aligned.column
+                                            a(href='#/staffs/new/') 创建新的STAFF条目
+                        div
+                            div(v-show='!ui.staffEditor.show')
+                                div.fields
+                                    div.seven.wide.field
+                                        label 原作类型
+                                        div(style='margin-top: 25px')
+                                            select#original-work-type-picker.ui.fluid.dropdown.dropdown-select(v-model='data.originalWorkType')
+                                                option(value=' ') <不选择>
+                                                option(v-for='choice in originalWorkTypeChoices', :value='choice.value') {{choice.title}}
+                                    div.nine.wide.field
+                                        label 原作者
+                                        div.ui.segment
+                                            div(style='padding-right: 30px')
+                                                div.ui.label(v-for='staff in data.originalWorkAuthors') {{staff.name}}
+                                                div.ui.label(v-if='!data.originalWorkAuthors.length', style='background: #FFFFFF') 原作的作者
+                                            button.ui.basic.icon.button(style='position: absolute; right: 5px; top: 9px', @click='switchStaffEditor("originalWorkAuthors")')
+                                                i.edit.icon
+                                div.fields
+                                    div.seven.wide.field
+                                        label STAFF
+                                        div.ui.segment
+                                            div(style='padding-right: 30px')
+                                                div.ui.label(v-for='staff in data.staffSupervisors') {{staff.name}}
+                                                div.ui.label(v-if='!data.staffSupervisors.length', style='background: #FFFFFF') 重要的STAFF人员
+                                            button.ui.basic.icon.button(style='position: absolute; right: 5px; top: 9px', @click='switchStaffEditor("staffSupervisors")')
+                                                i.edit.icon
+                                    div.nine.wide.field
+                                        label 制作公司
+                                        div.ui.segment
+                                            div(style='padding-right: 30px')
+                                                div.ui.label(v-for='staff in data.staffCompanies') {{staff.name}}
+                                                div.ui.label(v-if='!data.staffCompanies.length', style='background: #FFFFFF') 制作动画的动画公司
+                                            button.ui.basic.icon.button(style='position: absolute; right: 5px; top: 9px', @click='switchStaffEditor("staffCompanies")')
+                                                i.edit.icon
+
                 //关联的番剧
                 div.ui.accordion.field
                     div.title
@@ -195,11 +238,58 @@ div.ui.segment(v-if='!ui.forbidden')
                             = '关联的番剧'
                     div.content
                         div.fields
-                            //TODO 完成番剧的关联系统
+                            div.two.wide.field
+                                div.ui.tiny.secondary.vertical.menu(style='width: 120%')
+                                    a.item(v-for='(r, index) in relationChoices', :key='r.relation',
+                                            :class='{active: index === ui.relationEditor.tab}', @click='switchRelationTab(index)',
+                                            @dragover.prevent, @drop.prevent='dropOnTab($event, r.relation)') {{r.name}}
+                                        div.ui.teal.left.pointing.label(style='margin-top: -4px') {{data.relationList[r.relation] ? data.relationList[r.relation].length : 0}}
+                            div.five.wide.field
+                                div.ui.list(style='overflow: auto; max-height: 245px; padding-bottom: 25px')
+                                    div.item(v-for='(item, index) in data.relationList[ui.relationEditor.tabRelation]', :key='item.id',
+                                            draggable='true', @dragstart='dragCurrentItem($event, index)', @dragend='dragItemEnd',
+                                            @dragover.prevent, @drop.prevent='dropOnCurrent($event, index)')
+                                        img.ui.image(:src='item.cover', style='width: 20%')
+                                        div.content(style='padding: 5px')
+                                            div.header() {{item.title}}
+                                    div.item(v-show='ui.relationEditor.dragging', @dragover.prevent, @drop.prevent='dropOnCurrent($event, null)')
+                                        div.content(style='text-align: center; color: #DADADA; height: 25px') 拖到这里添加
+                            div.nine.wide.field(@dragover.prevent, @drop.prevent='dropOnSearchField($event)')
+                                div.ui.transparent.icon.input
+                                    input(type='text', :placeholder='simpleTitle || "输入关键字搜索相关番剧"', v-model='ui.relationEditor.search', @keydown.enter='searchRelation')
+                                    i.search.link.icon(@click='searchRelation')
+                                div.ui.divider
+                                div.ui.two.columns.grid(v-if='!ui.relationEditor.searchLoading')
+                                    div.column(v-for='(item, index) in ui.relationEditor.showResult')
+                                        div.item(draggable='true', @dragstart='dragSearchItem($event, index)', @dragend='dragItemEnd')
+                                            img(style='width: 20%', :src='item.cover')
+                                            div(style='padding: 5px; display: inline; position: absolute')
+                                                div {{item.title}}
+                                div(style='text-align: center', v-if='ui.relationEditor.searchLoading')
+                                    div.ui.active.inline.loader
+
+                //删除条目
+                div.ui.grid
+                    div.right.aligned.column
+                        button.ui.fluid.small.red.basic.icon.button(v-if='editId', @click='openTrashModal')
+                            i.trash.icon
+                            = '删除此条目'
+                div#trash-modal.ui.basic.modal
+                    div.ui.icon.header
+                        i.trash.icon
+                        = '删除此条目'
+                    div.content 删除操作不可撤销，并将删除所有关联的内容。确认要执行此操作吗？
+                    div.actions
+                        div.ui.green.cancel.inverted.button
+                            i.delete.icon
+                            = '取消'
+                        div.ui.red.ok.inverted.button
+                            i.trash.icon
+                            = '确认'
         div.two.wide.column
     div.ui.inverted.dimmer(:class='{active: ui.loading}')
         div.ui.loader
-div.ui.placeholder.segment(v-if='ui.forbidden')
+div.ui.placeholder.segment(v-if='ui.errorInfo')
     div.ui.icon.header
         i.times.icon
-        = '您没有创建新条目的权限。'
+        = '{{ui.errorInfo}}'

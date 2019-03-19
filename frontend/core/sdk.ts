@@ -20,12 +20,11 @@ class Client {
     private getDetailURL(url: string, id: any): string {
         return `${this.serverURL}${url}/${id}/`
     }
-    private getHeaders(): {} {
-        if(this.token) {
-            return {Authorization: `Token ${this.token}`}
-        }else{
-            return null
-        }
+    private getHeaders(contentType?: string): {} {
+        let ret: any = {}
+        if(this.token) ret['Authorization'] = `Token ${this.token}`
+        if(contentType) ret['Content-Type'] = contentType
+        return this.token || contentType ? ret : null
     }
 
     private static callbackSuccess(callback: (success: boolean, status: number, data: any) => void, response: any): void {
@@ -38,7 +37,6 @@ class Client {
             callback(false, null, null)
         }
     }
-
     private generateMethod(method: string, url: string) {
         return {
             list: (url: string) => (params, callback) =>
@@ -83,7 +81,6 @@ class Client {
                     .catch((error) => Client.callbackFailed(callback, error))
         }[method](url)
     }
-
     private endpoint(url: string, includes?: string[], extra_action?: {}): Object {
         includes = includes || ['list', 'create', 'retrieve', 'update', 'partialUpdate', 'delete']
         let ret = {}
@@ -97,8 +94,17 @@ class Client {
         }
         return ret
     }
-
+    private generatePostFormData(url: (params) => string) {
+        return (params, formData, callback) => {
+            this.instance.post(this.getURL(url(params)), formData, {headers: this.getHeaders("multipart/form-data")})
+                .then((response) => Client.callbackSuccess(callback, response))
+                .catch((error) => Client.callbackFailed(callback, error))
+        }
+    }
     private generate() {
+        this['cover'] = {
+            animation: this.generatePostFormData((params) => `/cover/animation/${params}`)
+        }
         this['user'] = {
             login: this.endpoint('/user/login', ['post']),
             logout: this.endpoint('/user/logout', ['post']),

@@ -1,14 +1,12 @@
-function createAnimationDetailVue(selectName: string, location: {mode: string, tab: string, id: number | string, page: number}) {
+function createAnimationDetailVue(selectName: string, location: {mode: string, tab: string, id: number | string, params: Object}) {
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
-    const webURL = window['webURL']
     const serverURL = window['serverURL']
 
     const NO_COVER_URL = `${window['staticURL']}/images/no_cover.jpg`
     const RELATION_NAME = ['前作', '续作', '番外', '正片', '外传', '正传', '同系列']
     const RELATION_SEQUENCE = ['PREV', 'NEXT', 'UNOFFICIAL', 'OFFICIAL', 'EXTERNAL', 'TRUE', 'SERIES']
-    const MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
     const PUBLISH_TYPE_CHOICE = [
         {value: 'GENERAL', title: 'TV & Web'},
         {value: 'MOVIE', title: '剧场版动画'},
@@ -65,36 +63,10 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                 haveDiary: false,
                 haveComment: false
             },
-            editor: {
-                title: '',
-                originTitle: null,
-                otherTitle: null,
-
-                originalWorkType: ' ',
-                originalWorkAuthors: [],
-                staffCompanies: [],
-                staffSupervisors: [],
-
-                publishType: 'GENERAL',
-                publishTime: null,
-                duration: 24,
-                sumQuantity: 12,
-                publishedQuantity: 0,
-                publishPlan: [],
-                subtitleList: [],
-
-                tags: [],
-                limitLevel: ' ',
-                keyword: null,
-                introduction: null,
-                links: []
-            },
             ui: {
                 loading: false,
                 errorInfo: null,
                 durationSwitch: false,      //切换publish type | duration的标记变量
-
-                editMode: false,            //编辑模式
             }
         },
         computed: {
@@ -162,35 +134,18 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
             },
         },
         watch: {
-
         },
         methods: {
             load() {
                 this.refresh()
             },
             refresh() {
-                if(location.id != null && this.id != location.id) {
+                if(location.id != null && (this.id != location.id || location.params && location.params['refresh'])) {
                     this.id = location.id
                     if(this.id != null) this.query()
                 }
             },
             leave() {},
-            //UI逻辑
-            switchToEditMode() {
-                //切换到编辑模式
-                if(!this.ui.editMode) {
-                    this.clearEditor()
-                    this.refreshEditor()
-                    this.ui.editMode = true
-                }
-            },
-            submitEditor() {
-                //提交编辑
-                if(this.ui.editMode) {
-
-                }
-            },
-
             //数据逻辑
             query() {
                 this.ui.errorInfo = null
@@ -222,6 +177,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                     }
                 })
             },
+            //detail
             refreshDetail() {
                 const staffInfo = (function (info) {
                     let ret = {}
@@ -313,15 +269,18 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                 this.detail.haveDiary = false
                 this.detail.haveComment = false
             },
-            refreshEditor() {
-
+            //辅助显示的函数
+            animationEditURL(id: number): string {
+                return `#/animations/edit/${id}/`
             },
-            clearEditor() {
-
-            },
-            //辅助函数
             animationDetailURL(id: number): string {
                 return `#/animations/detail/${id}/`
+            },
+            tagDetailURL(tag: string): string {
+                return `#/tags/detail/${encodeURIComponent(tag)}/`
+            },
+            staffDetailURL(id: number): string {
+                return `#/staffs/detail/${id}/`
             },
             playStatus(publishedQuantity: number, sumQuantity: number): string {
                 if(sumQuantity == null) {

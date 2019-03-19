@@ -6,10 +6,10 @@
         el: '#top-bar',
         data: {
             profile: {
-                is_authenticated: false,
+                is_authenticated: null,
                 username: '',
                 name: '',
-                is_staff: false
+                is_staff: null
             }
         },
         methods: {
@@ -25,6 +25,9 @@
                     this.profile.username = d['username']
                     this.profile.name = d['name']
                     this.profile.is_staff = d['is_staff']
+                }else{
+                    this.profile.is_authenticated = false
+                    this.profile.is_staff = false
                 }
             })
         }

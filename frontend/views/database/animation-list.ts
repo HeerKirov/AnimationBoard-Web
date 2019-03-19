@@ -10,7 +10,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
     const SORT_CHOICE = [
         {value: 'publish_time', title: '发布时间'},
         {value: 'create_time', title: '创建时间'},
-        {value: 'update_time', title: '修改时间'},
+        {value: 'update_time', title: '更新时间'},
         {value: 'title', title: '标题顺序'},
         {value: 'limit_level', title: '限制分级'},
     ]
