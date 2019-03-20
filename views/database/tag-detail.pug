@@ -1,0 +1,44 @@
+div.ui.menu
+    a.ui.icon.item(:href='editMode ? tagDetailURL(tag): "#/tags/"')
+        i.angle.left.icon
+    div.ui.item {{editMode ? "编辑标签" : "标签"}}
+    a.ui.right.icon.item(v-if='isStaff && !ui.errorInfo && !editMode', :href='tagEditURL(tag)')
+        i.edit.icon(style='margin-right: 5px')
+        = '编辑'
+    a.ui.right.icon.item(v-if='isStaff && !ui.errorInfo && editMode', @click='submit')
+        i.check.icon(style='margin-right: 5px')
+        = '提交并保存'
+div.ui.segment(v-show='!ui.errorInfo && !ui.editMode')
+    div.ui.grid
+        div.two.wide.column
+        div.twelve.wide.column(style='margin-top: 20px; margin-bottom: 20px')
+            div.ui.form
+                div.field(style='text-align: center')
+                    h2.ui.icon.header
+                        i.tag.icon
+                        div.content(v-if='!editMode') {{data.name}}
+                            div.sub.header {{data.introduction}}
+                        div.content(v-if='editMode')
+                            div.sub.header
+                                input(type='text', placeholder='标签名称', style='margin-top: 5px', v-model='editor.name')
+                                div.ui.top.pointing.red.basic.label(v-if='editor.nameError') {{editor.nameError}}
+                                input(type='text', placeholder='简介', style='margin-top: 10px', v-model='editor.introduction')
+                div.field(style='margin-top: 50px', v-if='!editMode')
+                    label 与之有关的番剧
+                    div.ui.three.columns.grid
+                        div.column(v-for='item in ui.animationList')
+                            div.item
+                                img(style='width: 20%', :src='item.cover')
+                                div.content(style='padding: 5px; display: inline; position: absolute')
+                                    a.header(:href='animationDetailURL(item.id)') {{item.title}}
+                    div.ui.grid(v-if='ui.animationList.length')
+                        div.right.aligned.column
+                            a(href='javascript: void(0)', @click='gotoAnimationList') 在番剧列表浏览所有内容
+                    div.item(style='margin-top: 40px', v-if='!ui.animationList.length') 没有相关的番剧~
+        div.two.wide.column
+    div.ui.inverted.dimmer(:class='{active: ui.loading}')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='ui.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{ui.errorInfo}}'

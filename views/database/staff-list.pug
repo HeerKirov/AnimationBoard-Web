@@ -1,0 +1,75 @@
+div.ui.menu
+    div.ui.pointing.dropdown.item.dropdown-menu STAFF
+        i.dropdown.icon
+        div.menu
+            a.item(href=`${webURL}/database/#/animations/`) 番剧
+            a.item(href=`${webURL}/database/#/tags/`) 标签
+    div.right.ui.floating.dropdown.icon.item.dropdown-menu
+        span {{sort.title}}
+        i(style='margin-left: 5px', :class='sort.desc ? "sort amount down icon" : "sort amount up icon"')
+        div.menu
+            div.item(v-for='(choice, index) in sortChoices', @click='sortBy(index)') 按{{choice.title}}
+    div.ui.floating.dropdown.icon.item.dropdown-menu
+        i.filter.icon
+        span {{filter.title}}
+        div.menu
+            div.item(v-for='(f, index) in filterChoices', @click='filterBy(index)') 按{{f.title}}
+    div.menu
+        div.item
+            div.ui.transparent.icon.input
+                input(type='text', placeholder='搜索…', v-model='filter.searchText', @keydown.enter='query')
+                i.search.link.icon
+    a.ui.icon.item(href=`#/staffs/new/`, v-if='isStaff')
+        i.plus.icon
+div.ui.segment(v-if='!panel.errorInfo')
+    //上方的分页器
+    div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+        div.right.aligned.column
+            div.ui.small.basic.buttons
+                button.ui.icon.button(@click='pageTo("first")')
+                    i.angle.double.left.icon
+                button.ui.icon.button(@click='pageTo("prev")')
+                    i.angle.left.icon
+                button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                button.ui.icon.button(@click='pageTo("next")')
+                    i.angle.right.icon
+                button.ui.icon.button(@click='pageTo("last")')
+                    i.angle.double.right.icon
+    div.ui.grid
+        div.two.wide.column
+        div.twelve.wide.column
+            table.ui.very.basic.table
+                thead
+                    tr
+                        th 名字
+                        th 类型
+                        th 原名
+                tbody
+                    tr(v-for='item in data')
+                        td
+                            a(:href='staffDetailURL(item.id)') {{item.name}}
+                        td
+                            i.icon(:class='item.is_organization ? "building outline" : "user"')
+                        td {{item.origin_name}}
+        div.two.wide.column
+    //下方的分页器
+    div.ui.two.column.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+        div.left.aligned.column
+            label 共{{pagination.count}}条记录
+        div.right.aligned.column
+            div.ui.small.basic.buttons
+                button.ui.icon.button(@click='pageTo("first")')
+                    i.angle.double.left.icon
+                button.ui.icon.button(@click='pageTo("prev")')
+                    i.angle.left.icon
+                button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                button.ui.icon.button(@click='pageTo("next")')
+                    i.angle.right.icon
+                button.ui.icon.button(@click='pageTo("last")')
+                    i.angle.double.right.icon
+    div.ui.inverted.dimmer(:class='{active: panel.loading}')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='panel.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{panel.errorInfo}}'

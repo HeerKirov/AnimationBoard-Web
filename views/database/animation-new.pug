@@ -13,7 +13,7 @@ div.ui.segment(v-if='!ui.errorInfo')
             div.ui.form
                 div.fields
                     div.field(:class='editId ? "twelve wide" : "sixteen wide"')
-                        div.field
+                        div.required.field
                             label 标题
                             input(type='text', placeholder='标题', v-model='data.title')
                             div.ui.pointing.red.basic.label(v-if='ui.error.title') {{ui.error.title}}
@@ -95,7 +95,7 @@ div.ui.segment(v-if='!ui.errorInfo')
                             = '放送信息'
                     div.content
                         div.fields
-                            div.five.wide.field
+                            div.five.wide.required.field
                                 label 放送类型
                                 select#publish-type-picker.ui.fluid.dropdown.dropdown-select(v-model='data.publishType')
                                     option(v-for='choice in publishTypeChoices', :value='choice.value') {{choice.title}}

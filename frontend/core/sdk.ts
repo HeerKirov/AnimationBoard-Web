@@ -18,7 +18,7 @@ class Client {
         return `${this.serverURL}${url}/`
     }
     private getDetailURL(url: string, id: any): string {
-        return `${this.serverURL}${url}/${id}/`
+        return `${this.serverURL}${url}/${encodeURIComponent(id)}/`
     }
     private getHeaders(contentType?: string): {} {
         let ret: any = {}

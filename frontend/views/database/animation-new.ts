@@ -1,4 +1,4 @@
-function createAnimationNewVue(selectName: string, location: {mode: string, tab: string, id: number | string}) {
+function createAnimationNewVue(selectName: string, location: {mode: string, tab: string, id: number | string, route(hash: string, params?: Object)}) {
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
@@ -145,7 +145,6 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                 relationList: {}
             },
             ui: {
-                forbidden: false,
                 errorInfo: null,
                 loading: false,
                 coverUploading: false,
@@ -662,7 +661,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                                 backend = null
                                 backendId = null
                                 vm.clear()
-                                window.location.hash = `#/animations/detail/${vm.editId}/?refresh=true`
+                                location.route(`#/animations/detail/${vm.editId}/`, {refresh: true})
                             }else if(s === 401 || s === 403) vm.ui.errorInfo = '您没有对条目作出变更的权限。'
                             else if(s === 400) alert('发生预料之外的格式错误。')
                             else if(s === 500) alert('服务器发生预料之外的内部错误。')

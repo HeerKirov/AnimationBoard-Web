@@ -1,0 +1,34 @@
+div.ui.menu
+    a.ui.icon.item(href='#/tags/')
+        i.angle.left.icon
+    div.ui.item 新建标签
+    a.ui.right.icon.item(v-if='!ui.errorInfo', @click='submit')
+        i.check.icon(style='margin-right: 5px')
+        = '提交并保存'
+div.ui.segment(v-if='!ui.errorInfo')
+    div.ui.grid
+        div.two.wide.column
+        div.twelve.wide.column
+            div.ui.form(style='margin-top: 20px; margin-bottom: 20px')
+                div.fields(v-for='(item, index) in items')
+                    div.five.wide.required.field
+                        label 名称
+                        input(type='text', placeholder='标签的识别名', v-model='item.name')
+                        div.ui.pointing.red.basic.label(v-if='item.nameError') {{item.nameError}}
+                    div.wide.field(:class='item.length > 1 ? "ten" : "eleven"')
+                        label 简介
+                        input(type='text', placeholder='简单描述此标签的定义', v-model='item.introduction')
+                    div.one.wide.field(v-if='items.length > 1')
+                        label(style='visibility: hidden') delete
+                        button.ui.red.icon.button(@click='removeItem(index)')
+                            i.delete.icon
+                button.ui.fluid.basic.green.icon.button(@click='addItem')
+                    i.plus.icon
+                    = '继续添加标签'
+        div.two.wide.column
+    div.ui.inverted.dimmer(:class='{active: ui.loading}')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='ui.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{ui.errorInfo}}'

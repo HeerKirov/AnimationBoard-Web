@@ -1,0 +1,74 @@
+div.ui.menu
+    a.ui.icon.item(:href='editMode ? staffDetailURL(id): "#/staffs/"')
+        i.angle.left.icon
+    div.ui.item {{editMode ? "编辑STAFF" : "STAFF"}}
+    a.ui.right.icon.item(v-if='isStaff && !ui.errorInfo && !editMode', :href='staffEditURL(id)')
+        i.edit.icon(style='margin-right: 5px')
+        = '编辑'
+    a.ui.right.icon.item(v-if='isStaff && !ui.errorInfo && editMode', @click='submit')
+        i.check.icon(style='margin-right: 5px')
+        = '提交并保存'
+div.ui.segment(v-show='!ui.errorInfo && !ui.editMode')
+    div.ui.grid
+        div.two.wide.column
+        div.twelve.wide.column(style='margin-top: 20px; margin-bottom: 20px')
+            div.ui.form
+                div.field
+                    h2.ui.header(v-if='!editMode')
+                        i.icon(:class='data.isOrganization ? "building outline" : "user"')
+                        div.content {{data.name}}
+                            div.sub.header {{data.originName}}
+
+                    h2.ui.header(v-if='editMode')
+                        i.icon(:class='editor.isOrganization ? "building outline" : "user"')
+                        div.content
+                            div.sub.header
+                                input(type='text', placeholder='组织名称或人员姓名', style='margin-top: 5px', v-model='editor.name')
+                                div.ui.top.pointing.red.basic.label(v-if='editor.nameError') {{editor.nameError}}
+                                input(type='text', placeholder='原语言中的名字', style='margin-top: 5px', v-model='editor.originName')
+                                div.ui.top.pointing.red.basic.label(v-if='editor.originNameError') {{editor.originNameError}}
+                                div.ui.buttons(style='margin-top: 5px')
+                                    button.ui.blue.icon.button(@click='editor.isOrganization = true', :class='{basic: editor.isOrganization != true}')
+                                        i.building.outline.icon
+                                        = '组织'
+                                    button.ui.green.icon.button(@click='editor.isOrganization = false', :class='{basic: editor.isOrganization != false}')
+                                        i.user.icon
+                                        = '人员'
+                div.field(style='margin-top: 70px', v-if='!editMode')
+                    label 作为原作者相关的番剧
+                    div.ui.three.columns.grid
+                        div.column(v-for='item in ui.animationByAuthors')
+                            div.item
+                                img(style='width: 20%', :src='item.cover')
+                                div.content(style='padding: 5px; display: inline; position: absolute')
+                                    a.header(:href='animationDetailURL(item.id)') {{item.title}}
+                    div.item(style='margin-top: 40px', v-if='!ui.animationByAuthors.length') 没有相关的番剧~
+                div.field(style='margin-top: 10px', v-if='!data.isOrganization && !editMode')
+                    label 作为STAFF人员相关的番剧
+                    div.ui.three.columns.grid
+                        div.column(v-for='item in ui.animationBySupervisors')
+                            div.item
+                                img(style='width: 20%', :src='item.cover')
+                                div.content(style='padding: 5px; display: inline; position: absolute')
+                                    a.header(:href='animationDetailURL(item.id)') {{item.title}}
+                    div.item(style='margin-top: 40px', v-if='!ui.animationBySupervisors.length') 没有相关的番剧~
+                div.field(style='margin-top: 10px', v-if='data.isOrganization && !editMode')
+                    label 作为制作公司相关的番剧
+                    div.ui.three.columns.grid
+                        div.column(v-for='item in ui.animationByCompanies')
+                            div.item
+                                img(style='width: 20%', :src='item.cover')
+                                div.content(style='padding: 5px; display: inline; position: absolute')
+                                    a.header(:href='animationDetailURL(item.id)') {{item.title}}
+                    div.item(style='margin-top: 40px', v-if='!ui.animationByCompanies.length') 没有相关的番剧~
+                div.field(v-if='!editMode')
+                    div.ui.grid(v-if='ui.animationByAuthors.length || ui.animationBySupervisors.length || ui.animationByCompanies.length')
+                        div.right.aligned.column
+                            a(href='javascript: void(0)', @click='gotoAnimationList') 在番剧列表浏览所有内容
+        div.two.wide.column
+    div.ui.inverted.dimmer(:class='{active: ui.loading}')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='ui.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{ui.errorInfo}}'

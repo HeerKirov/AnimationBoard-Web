@@ -136,11 +136,11 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
         watch: {
         },
         methods: {
-            load() {
-                this.refresh()
+            load(params?: Object) {
+                this.refresh(params)
             },
-            refresh() {
-                if(location.id != null && (this.id != location.id || location.params && location.params['refresh'])) {
+            refresh(params?: Object) {
+                if(location.id != null && (this.id != location.id || (params && params['refresh']))) {
                     this.id = location.id
                     if(this.id != null) this.query()
                 }
@@ -322,9 +322,6 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                     return title2
                 }
             }
-        },
-        created() {
-
         }
     })
 

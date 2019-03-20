@@ -1,0 +1,26 @@
+div.ui.menu
+    div.ui.pointing.dropdown.item.dropdown-menu 标签
+        i.dropdown.icon
+        div.menu
+            a.item(href=`${webURL}/database/#/animations/`) 番剧
+            a.item(href=`${webURL}/database/#/staffs/`) STAFF
+    div.right.menu
+        div.item
+            div.ui.transparent.icon.input
+                input(type='text', placeholder='搜索…', v-model='filter.searchText', @keydown.enter='query')
+                i.search.link.icon
+    a.ui.icon.item(href=`#/tags/new/`, v-if='isStaff')
+        i.plus.icon
+div.ui.segment(v-if='!panel.errorInfo')
+    div.ui.grid
+        div.two.wide.column
+        div.twelve.wide.column
+            div.ui.large.tag.labels(style='margin-top: 20px; margin-bottom: 20px')
+                a.ui.label(v-for='tag in data', :href='tagDetailURL(tag.name)') {{tag.name}}
+        div.two.wide.column
+    div.ui.inverted.dimmer(:class='{active: panel.loading}')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='panel.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{panel.errorInfo}}'

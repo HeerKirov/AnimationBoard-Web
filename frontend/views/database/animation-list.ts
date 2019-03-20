@@ -1,4 +1,4 @@
-function createAnimationListVue(selectName: string, location: {mode: string, tab: string, id: number | string}) {
+function createAnimationListVue(selectName: string, location: {mode: string, tab: string, id: number | string, params: Object}) {
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
@@ -133,15 +133,15 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
         },
         methods: {
             //系统事件
-            load() {
+            load(params?: Object) {
+                if(params) this.analyseHashParameters(params)
                 this.panel.errorInfo = null
-                this.panel.loading = false
+                this.panel.loading = true
                 this.query()
                 this.updateTagList()
             },
-            leave() {
-
-            },
+            refresh() {},
+            leave() {},
             //控件事件
             sortBy(by: number) {
                 if(by === this.sort.by) {
@@ -176,6 +176,19 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                 }
             },
             //处理逻辑
+            analyseHashParameters(params) {
+                if(params['tags']) {
+                    let picker = $('#animation-list #filter-tags-picker')
+                    picker.dropdown('clear')
+                    this.filter.tags = []
+                    for(let tag of params['tags']) {
+                        picker.dropdown('set selected', tag)
+                    }
+                }
+                if(params['search']) {
+                    this.filter.searchText = params['search']
+                }
+            },
             query() {
                 this.panel.loading = true
                 let params = {
@@ -324,6 +337,10 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                                             this.view.detailMode === 'INFO' ? '介绍信息' : '原作和制作'
             }
         }
+    })
+    $('#animation-list #filter-tags-picker').dropdown({
+        fullTextSearch: true,
+        allowAdditions: true
     })
     return vm
 }

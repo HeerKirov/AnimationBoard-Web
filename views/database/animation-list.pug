@@ -42,7 +42,7 @@ div.ui.segment(v-show='filter.show')
     div.ui.grid
         div.six.wide.column
             h5.ui.header 标签
-            select.ui.fluid.search.dropdown.dropdown-select(multiple='', v-model='filter.tags')
+            select#filter-tags-picker.ui.fluid.search.dropdown(multiple='', v-model='filter.tags')
                 option(v-for='tag in filter.tagsList', :value='tag.name') {{tag.name}}
         div.three.wide.column
             h5.ui.header 放送类型

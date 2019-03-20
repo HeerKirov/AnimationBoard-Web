@@ -1,0 +1,45 @@
+div.ui.menu
+    a.ui.icon.item(href='#/staffs/')
+        i.angle.left.icon
+    div.ui.item 新建STAFF
+    a.ui.right.icon.item(v-if='!ui.errorInfo', @click='submit')
+        i.check.icon(style='margin-right: 5px')
+        = '提交并保存'
+div.ui.segment(v-if='!ui.errorInfo')
+    div.ui.grid
+        div.two.wide.column
+        div.twelve.wide.column
+            div.ui.form(style='margin-top: 20px; margin-bottom: 20px')
+                div.fields(v-for='(item, index) in items')
+                    div.five.wide.required.field
+                        label 名字
+                        input(type='text', placeholder='组织名称或人员姓名', v-model='item.name')
+                        div.ui.pointing.red.basic.label(v-if='item.nameError') {{item.nameError}}
+                    div.wide.field(:class='item.length > 1 ? "seven" : "eight"')
+                        label 原名
+                        input(type='text', placeholder='原语言中的名字', v-model='item.originName')
+                        div.ui.pointing.red.basic.label(v-if='item.originNameError') {{item.originNameError}}
+                    div.three.wide.field
+                        label 类型
+                        div.ui.buttons
+                            button.ui.blue.icon.button(@click='item.isOrganization = true', :class='{basic: item.isOrganization != true}')
+                                i.building.outline.icon
+                                = '组织'
+                            button.ui.green.icon.button(@click='item.isOrganization = false', :class='{basic: item.isOrganization != false}')
+                                i.user.icon
+                                = '人员'
+                        div.ui.pointing.red.basic.label(v-if='item.isOrgError') {{item.isOrgError}}
+                    div.one.wide.field(v-if='items.length > 1')
+                        label(style='visibility: hidden') delete
+                        button.ui.red.icon.button(@click='removeItem(index)')
+                            i.delete.icon
+                button.ui.fluid.basic.green.icon.button(@click='addItem')
+                    i.plus.icon
+                    = '继续添加STAFF'
+        div.two.wide.column
+    div.ui.inverted.dimmer(:class='{active: ui.loading}')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='ui.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{ui.errorInfo}}'

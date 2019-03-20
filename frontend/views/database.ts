@@ -9,6 +9,12 @@
         'animation-list': window['createAnimationListVue'],
         'animation-new': window['createAnimationNewVue'],
         'animation-detail': window['createAnimationDetailVue'],
+        'tag-list': window['createTagListVue'],
+        'tag-new': window['createTagNewVue'],
+        'tag-detail': window['createTagDetailVue'],
+        'staff-list': window['createStaffListVue'],
+        'staff-new': window['createStaffNewVue'],
+        'staff-detail': window['createStaffDetailVue'],
     }
     /**
      * 从hash中解析当前处于的面板状态。
@@ -19,7 +25,7 @@
      * #/animations/new/        新建页。前后斜线都可省略
      */
     function getHash(): {mode: 'detail' | 'list' | 'new' | 'edit', tab: string, id?: number | string, params?: Object | null} {
-        const LIST_REGEX = /#?\/?([a-z]+)\/?(\?.*)/
+        const LIST_REGEX = /#?\/?([a-z]+)\/?(\?.*)?/
         const DETAIL_REGEX = /#?\/?([a-z]+)\/detail\/([^\/]+)\/?(\?.*)?/
         const EDIT_REGEX = /#?\/?([a-z]+)\/edit\/([^\/]+)\/?(\?.*)?/
         const NEW_REGEX = /#?\/?([a-z]+)\/new\/?(\?.*)?/
@@ -99,8 +105,15 @@
         let stdTab = tab === 'animations' ? 'animation' :
                 tab === 'tags' ? 'tag' :
                 tab === 'staffs' ? 'staff' : null
-        let stdMode = mode === 'edit' ? 'new' : mode
-        return stdTab && mode ? `${stdTab}-${stdMode}` : null
+        if(stdTab === 'animation' && mode === 'edit') {
+            return 'animation-new'
+        }else if(stdTab === 'tag' && mode === 'edit') {
+            return 'tag-detail'
+        }else if(stdTab === 'staff' && mode === 'edit') {
+            return 'staff-detail'
+        }else{
+            return stdTab && mode ? `${stdTab}-${mode}` : null
+        }
     }
     /**
      * 切换当前显示的面板.
@@ -133,7 +146,7 @@
                 location.params = params
                 if(newViewName && newViewName in vms) {
                     let load = vms[newViewName].load
-                    if(typeof load === 'function') load()
+                    if(typeof load === 'function') load(tempPrivateParams)
                 }
             }else{
                 location.mode = mode
@@ -142,18 +155,24 @@
                 location.params = params
                 if(newViewName && newViewName in vms) {
                     let refresh = vms[newViewName].refresh
-                    if(typeof refresh === 'function') refresh()
+                    if(typeof refresh === 'function') refresh(tempPrivateParams)
                 }
             }
+            tempPrivateParams = null
             tabView()
         }
     }
+    let tempPrivateParams = null
     //本地公共资源区
     let location = {
         mode: null,
         tab: null,
         id: undefined,
-        params: undefined
+        params: undefined,
+        route(hash: string, params?: Object) {
+            tempPrivateParams = params || null
+            window.location.hash = hash
+        }
     }
     let vms = {}
 
