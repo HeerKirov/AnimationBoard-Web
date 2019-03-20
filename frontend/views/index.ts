@@ -1,5 +1,7 @@
-const Vue = window['Vue']
+(function () {
+    const Vue = window['Vue']
 
-let vue = new Vue({
+    let vue = new Vue({
 
-})
+    })
+})()

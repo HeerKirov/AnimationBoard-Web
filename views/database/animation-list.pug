@@ -96,7 +96,7 @@ div.ui.segment(v-if='panel.errorInfo == null')
         thead
             tr
                 th 标题
-                th 标签
+                th(v-if='view.detailMode === "OVERVIEW" || view.detailMode === "INFO"') 标签
                 th(v-if='view.detailMode === "INFO"') 其他标题
                 th(v-if='view.detailMode === "INFO"') 关键字
                 th(v-if='view.detailMode === "OVERVIEW"') 放送状况
@@ -111,7 +111,7 @@ div.ui.segment(v-if='panel.errorInfo == null')
             tr(v-for='item in data')
                 td
                     a(:href='animationDetailURL(item.id)') {{item.title}}
-                td
+                td(v-if='view.detailMode === "OVERVIEW" || view.detailMode === "INFO"')
                     a.ui.tag.label(v-for='tag in item.tags', :href='tagDetailURL(tag)') {{tag}}
                 td(v-if='view.detailMode === "INFO"') {{titleCol(item.origin_title, item.other_title)}}
                 td(v-if='view.detailMode === "INFO"') {{item.keyword}}

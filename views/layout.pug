@@ -21,7 +21,7 @@ block body
                 a(href=`${webURL}/profile/#/`) {{profile.name}}
                 i.dropdown.icon
                 div.menu
-                    a.item(href=`${webURL}/profile/#/setting`) 偏好设置
+                    a.item(href=`${webURL}/profile/#/setting/`) 偏好设置
                     a.item(href=`${webURL}/admin/`, v-if='profile.is_staff') 管理人员界面
                     a.item(@click='logout') 退出登录
     div(style='padding-top: 72px; padding-bottom: 72px')

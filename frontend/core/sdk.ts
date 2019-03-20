@@ -103,7 +103,8 @@ class Client {
     }
     private generate() {
         this['cover'] = {
-            animation: this.generatePostFormData((params) => `/cover/animation/${params}`)
+            animation: this.generatePostFormData((params) => `/cover/animation/${params}`),
+            profile: this.generatePostFormData((params) => `/cover/profile/${params}`),
         }
         this['user'] = {
             login: this.endpoint('/user/login', ['post']),

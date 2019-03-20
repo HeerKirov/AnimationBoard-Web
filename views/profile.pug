@@ -1,0 +1,69 @@
+extends layout
+
+block title
+    = `资料卡片 - ${title}`
+
+block content
+    div#main.ui.container
+        div.ui.grid
+            div.four.wide.column
+                div.ui.vertical.fluid.tabular.menu
+                    a.item(:class='{active: ui.tab === 0}', href='#/') 个人信息
+                    a.item(:class='{active: ui.tab === 1}', href='#/setting/') 偏好设置
+                    a.item(:class='{active: ui.tab === 2}', href='#/password/') 密码
+            div.twelve.wide.stretched.column
+                div.ui.segment(v-if='ui.tab === 0 && !ui.errorInfo')
+                    div.item
+                        a(href='javascript: void(0)', @click='openFileUpload')
+                            img(style='width: 150px; margin-right: 5px', :src='info.cover')
+                        div.content(style='padding: 5px; display: inline; position: absolute')
+                            h2.header(v-if='!ui.editInfo') {{info.name}}
+                            div.ui.input(v-if='ui.editInfo', style='margin-bottom: 6px')
+                                input(type='text', placeholder='昵称', v-model='ui.editNameText')
+                            div.ui.left.pointing.red.basic.label(v-if='ui.editNameError') {{ui.editNameError}}
+                            div.description @{{info.username}}
+                            div.description(style='margin-top: 15px')
+                                i.birthday.cake.icon
+                                = '创建日期: {{info.createTime}}'
+                            div.description(style='margin-top: 15px', v-if='info.isStaff || info.isSuperuser')
+                                i.user.circle.icon
+                                = '{{info.isSuperuser ? "超级管理员" : "管理员"}}'
+                        input#file-upload(type='file', style='visibility: hidden', @change='fileUpload')
+                    button.ui.icon.small.button(style='position: absolute; right: 10px; top: 15px', @click='switchEditInfo', :class='{basic: !ui.editInfo}')
+                        i.icon(:class='ui.editInfo ? "check" : "edit"')
+                div.ui.segment(v-if='ui.tab === 1 && !ui.errorInfo')
+                    div.ui.form(style='margin: 10px')
+                        div.field
+                            label 追番更新提醒
+                            div.ui.slider.checkbox
+                                input(type='checkbox', v-model='setting.animationUpdateNotice')
+                                label 在日记列表中的番剧更新时，会推送系统消息
+                        div.field
+                            label 夜间型番目表
+                            div.ui.slider.checkbox
+                                input(type='checkbox', v-model='setting.nightUpdateMode')
+                                label 使用26小时制，0:00 - 2:00期间更新的番剧会划归到前一天显示
+                        button.ui.icon.green.basic.small.button(style='margin-top: 10px', @click='saveSetting')
+                            i.save.icon
+                            = '保存'
+                div.ui.segment(v-if='ui.tab === 2 && !ui.errorInfo')
+                    div.ui.form(style='margin: 10px')
+                        div.field
+                            label 旧密码
+                            input(type='password', v-model='password.old')
+                            div.ui.top.pointing.red.basic.label(v-if='ui.passwordOldError') {{ui.passwordOldError}}
+                        div.field
+                            label 新密码
+                            input(type='password', v-model='password.new')
+                            div.ui.top.pointing.red.basic.label(v-if='ui.passwordNewError') {{ui.passwordNewError}}
+                        div.field
+                            label 确认密码
+                            input(type='password', v-model='password.check')
+                            div.ui.top.pointing.red.basic.label(v-if='ui.passwordCheckError') {{ui.passwordCheckError}}
+                        button.ui.fluid.icon.green.small.button(@click='savePassword')
+                            i.check.icon
+                            = '确认更改'
+                div.ui.placeholder.segment(v-if='ui.errorInfo')
+                    div.ui.icon.header
+                        i.times.icon
+                        = '{{ui.errorInfo}}'
