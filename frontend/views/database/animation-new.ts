@@ -377,7 +377,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                 this.data.duration = backend.duration
                 this.data.sumQuantity = backend.sum_quantity
                 this.data.publishedQuantity = backend.published_quantity
-                this.data.publishPlan = cloneArray(backend.publish_plan)
+                this.data.publishPlan = mapArray(backend.publish_plan, (d) => formatDateMinuteToStr(new Date(d)))
                 this.data.subtitleList = mapArray(backend.subtitle_list, (link: string) => {return {value: link}})
                 this.data.tags = mapArray(backend.tags, (tag) => {return {name: tag, id: null}})
                 this.data.keyword = backend.keyword
@@ -438,7 +438,6 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                     links: cloneArray(this.data.links)
                 }
             },
-
             //数据逻辑
             updateTagList(callback: (ok) => void = null) {
                 client.database.tags.list({ordering: 'id'}, (ok, s, d) => {
@@ -547,7 +546,13 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                     duration: parseInt(data.duration),
                     sum_quantity: data.sumQuantity ? parseInt(data.sumQuantity) : null,
                     published_quantity: data.publishedQuantity ? parseInt(data.publishedQuantity) : null,
-                    publish_plan: cloneArray(data.publishPlan),
+                    publish_plan: mapArray(data.publishPlan, (date) => {
+                        function fmt(n) {
+                            return n < 10 ? `0${n}` : n
+                        }
+                        let d = new Date(date)
+                        return `${d.getUTCFullYear()}-${fmt(d.getUTCMonth() + 1)}-${fmt(d.getUTCDate())}T${fmt(d.getUTCHours())}:${fmt(d.getUTCMinutes())}:${fmt(d.getUTCSeconds())}Z`
+                    }),
                     subtitle_list: mapArray(data.subtitleList, (subtitle) => subtitle.value),
 
                     tags: mapArray(data.tags, (tag) => tag.name),

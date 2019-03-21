@@ -3,6 +3,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
     const Vue = window['Vue']
     const client = window['client']
     const webURL = window['webURL']
+    const prefix = window['prefix'] || ''
     const serverURL = window['serverURL']
 
     const PAGE_LIMIT_IN_TABLE = 20
@@ -125,10 +126,10 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
         },
         watch: {
             'view.detailOn': function (val) {
-                window.localStorage['animation-list.view.detail-on'] = val
+                window.localStorage[`${prefix}animation-list.view.detail-on`] = val
             },
             'view.detailMode': function (val) {
-                window.localStorage['animation-list.view.detail-mode'] = val
+                window.localStorage[`${prefix}animation-list.view.detail-mode`] = val
             }
         },
         methods: {
@@ -327,12 +328,12 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
             },
         },
         created() {
-            if(window.localStorage['animation-list.view.detail-on'] != null) {
-                let val = window.localStorage['animation-list.view.detail-on']
+            if(window.localStorage[`${prefix}animation-list.view.detail-on`] != null) {
+                let val = window.localStorage[`${prefix}animation-list.view.detail-on`]
                 this.view.detailOn = val === "true" ? true : val === "false" ? false : !!val
             }
-            if(window.localStorage['animation-list.view.detail-mode'] != null) {
-                this.view.detailMode = window.localStorage['animation-list.view.detail-mode']
+            if(window.localStorage[`${prefix}animation-list.view.detail-mode`] != null) {
+                this.view.detailMode = window.localStorage[`${prefix}animation-list.view.detail-mode`]
                 this.view.detailModeTitle = this.view.detailMode === 'OVERVIEW' ? '概览' :
                                             this.view.detailMode === 'INFO' ? '介绍信息' : '原作和制作'
             }

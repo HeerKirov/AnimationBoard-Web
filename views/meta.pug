@@ -14,10 +14,11 @@ html
     script(src=`${staticURL}/lib/axios/dist/axios.min.js`)
     script(src=`${staticURL}/js/core/sdk.js`)
     script
-      = `window['webURL'] = '${webURL}'\n`
-      = `window['serverURL'] = '${serverURL}'\n`
-      = `window['staticURL'] = '${staticURL}'\n`
-      = `window['client'] = new Client({serverURL})\n`
+      = `window['webURL'] = '${webURL}';`
+      = `window['serverURL'] = '${serverURL}';`
+      = `window['staticURL'] = '${staticURL}';`
+      = `window['client'] = new Client({serverURL, tokenPrefix: '${prefix}'});`
+      = `window['prefix'] = '${prefix}';`
       = `window['vms'] = {}`
     block import
   body

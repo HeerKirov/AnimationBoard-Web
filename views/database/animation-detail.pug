@@ -3,8 +3,8 @@ div.ui.menu
     a.ui.icon.item(href='#/animations/')
         i.angle.left.icon
     div.ui.item 番剧
-    //TODO 实装日记和评论功能
-    a.ui.right.icon.item(v-if='isLogin && !ui.errorInfo')
+    //TODO 实装评论功能
+    a.ui.right.icon.item(v-if='isLogin && !ui.errorInfo', @click='gotoDiary')
         i.flag.icon(style='margin-right: 5px')
         = '{{detail.haveDiary ? "日记" : !detail.sumQuantity ? "预定追番" : detail.publishedQuantity === detail.sumQuantity ? "补番" : "追番"}}'
     a.ui.icon.item(v-if='isLogin && !ui.errorInfo')

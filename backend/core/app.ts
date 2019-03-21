@@ -37,6 +37,7 @@ router.route({
     .raise(404, 'not_found')
     .params({
         title: 'Animation Board',
+        prefix: config.prefix,
         serverURL: config.serverURL,
         staticURL: `/${config.prefix}static`,
         webURL: `/${config.prefix}web`,

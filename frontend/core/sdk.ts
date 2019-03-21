@@ -2,14 +2,16 @@ const TOKEN_NAME: string = 'client-token'
 
 class Client {
     private readonly serverURL: string
+    private readonly tokenName: string
     private instance
     private token: string
 
-    constructor(params: {serverURL: string}) {
+    constructor(params: {serverURL: string, tokenPrefix?: string}) {
         this.serverURL = params.serverURL + '/api'
+        this.tokenName = (params.tokenPrefix || '') + TOKEN_NAME
         this.instance = window['axios'].create()
-        if(window.localStorage[TOKEN_NAME]) {
-            this.token = window.localStorage[TOKEN_NAME]
+        if(window.localStorage[this.tokenName]) {
+            this.token = window.localStorage[this.tokenName]
         }
         this.generate()
     }
@@ -140,9 +142,9 @@ class Client {
     setToken(token: string): void {
         this.token = token
         if(token) {
-            window.localStorage[TOKEN_NAME] = token
-        }else if(window.localStorage[TOKEN_NAME]) {
-            window.localStorage.removeItem(TOKEN_NAME)
+            window.localStorage[this.tokenName] = token
+        }else if(window.localStorage[this.tokenName]) {
+            window.localStorage.removeItem(this.tokenName)
         }
     }
 }

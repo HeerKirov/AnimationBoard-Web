@@ -2,6 +2,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
+    const webURL = window['webURL']
     const serverURL = window['serverURL']
 
     const NO_COVER_URL = `${window['staticURL']}/images/no_cover.jpg`
@@ -177,6 +178,37 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                     }
                 })
             },
+            gotoDiary() {
+                if(this.detail.haveDiary) {
+                    goto(this.id)
+                }else{
+                    this.ui.loading = true
+                    client.personal.diaries.create({animation: this.id, watched_quantity: 0}, (ok, s, d) => {
+                        this.ui.loading = false
+                        if(ok) {
+                            this.detail.haveDiary = true
+                            goto(this.id)
+                        }else if(s === 400) {
+                            let code = d['code']
+                            if(code === 'Exists') {
+                                this.detail.haveDiary = true
+                                goto(this.id)
+                            }else{
+                                alert(`发生预料之外的错误。错误代码: ${code}`)
+                            }
+                        }else if(s === 401) {
+                            this.ui.errorInfo = '请先登录。'
+                        }else{
+                            alert(s === 403 ? '没有请求的权限。' :
+                                    s === 404 ? '找不到资源。' :
+                                    s === 500 ? '内部服务器发生预料之外的错误。' : '网络连接发生错误。')
+                        }
+                    })
+                }
+                function goto(id: number) {
+                    window.location.href = `${webURL}/personal/diaries/#/detail/${id}/`
+                }
+            },
             //detail
             refreshDetail() {
                 const staffInfo = (function (info) {
@@ -294,12 +326,9 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                 }
             },
             fmtPublishPlan(plan: string): string {
-                let match = plan.match(/([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+)/)
-                if(match) {
-                    return `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${match[5]}`
-                }else{
-                    return plan
-                }
+                /** publish plan是时区相关的时间，需要进行时区处理。*/
+                let date = new Date(plan)
+                return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours() < 10 ? '0' : ''}${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}`
             },
             fmtPublishTime(time: string): string {
                 if(time) {

@@ -4,6 +4,67 @@ block title
     = `日记 - ${title}`
 
 block content
+    style.
+        .dis-selectable {
+            -webkit-user-select:none;
+            -moz-user-select:none;
+            user-select:none;
+        }
     div#main.ui.container
         div.ui.menu
+            div.ui.pointing.dropdown.item.dropdown-menu 日记
+                i.dropdown.icon
+                div.menu
+                    a.item(href=`#/diary/`) 日记
+                    a.item(href=`#/history/`) 足迹
+            div.right.ui.floating.dropdown.icon.item.dropdown-menu
+                span {{sort.title}}
+                i(style='margin-left: 5px', :class='sort.desc ? "sort amount down icon" : "sort amount up icon"')
+                div.menu
+                    div.item(v-for='(choice, index) in sortChoices', @click='sortBy(index)') 按{{choice.title}}
+            div.ui.floating.dropdown.icon.item.dropdown-menu
+                i.filter.icon(style='margin-right: 5px')
+                span {{filter.title}}
+                div.menu
+                    div.item(v-for='(f, index) in filterChoices', @click='filterBy(index)') {{f.title}}
+            div.menu
+                div.item
+                    div.ui.transparent.icon.input
+                        input(type='text', placeholder='搜索…', v-model='filter.search', @keydown.enter='refreshDiaryList')
+                        i.search.link.icon(@click='refreshDiaryList')
         div.ui.segment
+            div.ui.grid
+                div.one.wide.column
+                div.fourteen.wide.column(style='margin-top: 10px; margin-bottom: 10px')
+                    div.ui.segment(style='height: 100px', v-for='item in items')
+                        div(style='position: absolute; padding-left: 15px; transform: translate(0, -50%); top: 50%',
+                            :style='{"max-width": filter.value === "ready" ? "72%" : "36%"}')
+                            h2
+                                a(style='color: #000000', :href='diaryDetailURL(item.data.animation)') {{item.data.title}}
+                        div.ui.label.dis-selectable(v-if='item.data.nextPublish', :class='item.data.nextPublish.diff < 14 ? "teal" : "grey"',
+                                style='position: absolute; max-width: 30%; left: 40%; transform: translate(0, -50%); top: 50%; margin-left: 0px') {{updateNotice(item.data)}}
+                            div.detail 第{{item.data.publishedQuantity + 1}}话
+                        div.dis-selectable(style='position: absolute; max-width: 30%; transform: translate(0, -50%); top: 50%; right: 100px; margin-right: 10px; text-align: right')
+                            div(v-if='item.data.sumQuantity && item.data.publishedQuantity < item.data.sumQuantity')
+                                = '已更新'
+                                i.ui.label.teal {{item.data.publishedQuantity || 0}}
+                                = '话 / 共'
+                                i.ui.label.grey {{item.data.sumQuantity}}
+                                = '话'
+                            div(v-if='item.data.sumQuantity && item.data.publishedQuantity >= item.data.sumQuantity')
+                                = '全'
+                                i.ui.label.grey {{item.data.sumQuantity}}
+                                = '话'
+                        img.dis-selectable(style='position: absolute; top: 0; right: 0; height: 100%; border-radius: 0 4px 4px 0', :src='item.data.cover')
+                        a.ui.right.ribbon.label.dis-selectable(
+                            @mouseenter='item.mouseover = true', @mouseleave='item.mouseover = false',
+                            :class='item.mouseover ? "yellow" : "orange"', @click='pushNextWatch(item)',
+                            v-if='filter.value !== "ready" && filter.value !== "giveup" && item.data.watchedQuantity < item.data.publishedQuantity'
+                        ) {{item.mouseover ? `NEXT 第${item.data.watchedQuantity + 1}话` : watchedNotice(item.data)}}
+                        div.ui.right.ribbon.label.dis-selectable(
+                            v-if='filter.value !== "ready" && filter.value !== "giveup" && item.data.watchedQuantity >= item.data.publishedQuantity'
+                            :class='item.data.watchedQuantity >= item.data.sumQuantity ? "grey" : "orange"'
+                        ) {{watchedNotice(item.data)}}
+                        div.ui.active.inverted.dimmer(v-if='item.loading')
+                            div.ui.loader
+                div.one.wide.column

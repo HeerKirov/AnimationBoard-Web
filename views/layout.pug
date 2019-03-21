@@ -17,6 +17,7 @@ block body
                     a.item(href=`${webURL}/database/#/tags/`) 标签
             a.item.right(href=`${webURL}/login/`, v-if='!profile.is_authenticated') 登录
             a.item(href=`${webURL}/register/`, v-if='!profile.is_authenticated') 注册
+            //TODO message
             div.ui.simple.dropdown.item.right(v-if='profile.is_authenticated')
                 a(href=`${webURL}/profile/#/`) {{profile.name}}
                 i.dropdown.icon
@@ -26,4 +27,5 @@ block body
                     a.item(@click='logout') 退出登录
     div(style='padding-top: 72px; padding-bottom: 72px')
         block content
+    div(style='text-align: center') Animation Board @ Heer Kirov
     script(src=`${staticURL}/js/views/layout.js`)
