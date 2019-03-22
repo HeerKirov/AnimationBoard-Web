@@ -2,7 +2,6 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
-    const webURL = window['webURL']
     const prefix = window['prefix'] || ''
     const serverURL = window['serverURL']
 

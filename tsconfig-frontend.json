@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "public/js",
     "module": "commonjs",
-    "target": "es5",
+    "target": "es6",
     "moduleResolution": "classic",
     "removeComments": true,
     "noImplicitReturns": true,

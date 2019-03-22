@@ -11,29 +11,38 @@ block content
             user-select:none;
         }
     div#main.ui.container
-        div.ui.menu
-            div.ui.pointing.dropdown.item.dropdown-menu 日记
+        div.ui.menu(v-if='mode === "detail"')
+            //detail 工具栏
+            a.ui.icon.item(:href='parentURL')
+                i.angle.left.icon
+            a.ui.right.icon.item(:href='animationDetailURL(detail.animation)')
+                i.database.icon(style='margin-right: 5px')
+                = '数据库页面'
+        div.ui.menu(v-show='mode === "diary" || mode === "history"')
+            //diary 工具栏
+            div.ui.pointing.dropdown.item.dropdown-menu {{mode === "diary" ? "日记" : "足迹"}}
                 i.dropdown.icon
                 div.menu
                     a.item(href=`#/diary/`) 日记
                     a.item(href=`#/history/`) 足迹
-            div.right.ui.floating.dropdown.icon.item.dropdown-menu
+            div.right.ui.floating.dropdown.icon.item.dropdown-menu(v-show='mode === "diary"')
                 span {{sort.title}}
                 i(style='margin-left: 5px', :class='sort.desc ? "sort amount down icon" : "sort amount up icon"')
                 div.menu
                     div.item(v-for='(choice, index) in sortChoices', @click='sortBy(index)') 按{{choice.title}}
-            div.ui.floating.dropdown.icon.item.dropdown-menu
+            div.ui.floating.dropdown.icon.item.dropdown-menu(v-show='mode === "diary"')
                 i.filter.icon(style='margin-right: 5px')
                 span {{filter.title}}
                 div.menu
                     div.item(v-for='(f, index) in filterChoices', @click='filterBy(index)') {{f.title}}
-            div.menu
+            div.menu(:class='{right: mode === "history"}')
                 div.item
                     div.ui.transparent.icon.input
-                        input(type='text', placeholder='搜索…', v-model='filter.search', @keydown.enter='refreshDiaryList')
-                        i.search.link.icon(@click='refreshDiaryList')
+                        input(type='text', placeholder='搜索…', v-model='filter.search', @keydown.enter='searchFor')
+                        i.search.link.icon(@click='searchFor')
         div.ui.segment
-            div.ui.grid
+            //diary 内容
+            div.ui.grid(v-if='mode === "diary"')
                 div.one.wide.column
                 div.fourteen.wide.column(style='margin-top: 10px; margin-bottom: 10px')
                     div.ui.segment(style='height: 100px', v-for='item in items')
@@ -45,26 +54,138 @@ block content
                                 style='position: absolute; max-width: 30%; left: 40%; transform: translate(0, -50%); top: 50%; margin-left: 0px') {{updateNotice(item.data)}}
                             div.detail 第{{item.data.publishedQuantity + 1}}话
                         div.dis-selectable(style='position: absolute; max-width: 30%; transform: translate(0, -50%); top: 50%; right: 100px; margin-right: 10px; text-align: right')
-                            div(v-if='item.data.sumQuantity && item.data.publishedQuantity < item.data.sumQuantity')
+                            template(v-if='item.data.sumQuantity && item.data.publishedQuantity < item.data.sumQuantity')
                                 = '已更新'
                                 i.ui.label.teal {{item.data.publishedQuantity || 0}}
                                 = '话 / 共'
                                 i.ui.label.grey {{item.data.sumQuantity}}
                                 = '话'
-                            div(v-if='item.data.sumQuantity && item.data.publishedQuantity >= item.data.sumQuantity')
+                            template(v-if='item.data.sumQuantity && item.data.publishedQuantity >= item.data.sumQuantity')
                                 = '全'
                                 i.ui.label.grey {{item.data.sumQuantity}}
                                 = '话'
                         img.dis-selectable(style='position: absolute; top: 0; right: 0; height: 100%; border-radius: 0 4px 4px 0', :src='item.data.cover')
                         a.ui.right.ribbon.label.dis-selectable(
                             @mouseenter='item.mouseover = true', @mouseleave='item.mouseover = false',
-                            :class='item.mouseover ? "yellow" : "orange"', @click='pushNextWatch(item)',
+                            :class='item.mouseover ? "yellow" : "brown"', @click='pushNextWatch(item)',
                             v-if='filter.value !== "ready" && filter.value !== "giveup" && item.data.watchedQuantity < item.data.publishedQuantity'
-                        ) {{item.mouseover ? `NEXT 第${item.data.watchedQuantity + 1}话` : watchedNotice(item.data)}}
+                        )
+                            div.ui.active.inline.mini.loader(style='min-width: 55px', v-if='item.loading')
+                            template(v-else) {{item.mouseover ? `NEXT 第${item.data.watchedQuantity + 1}话` : watchedNotice(item.data)}}
                         div.ui.right.ribbon.label.dis-selectable(
                             v-if='filter.value !== "ready" && filter.value !== "giveup" && item.data.watchedQuantity >= item.data.publishedQuantity'
-                            :class='item.data.watchedQuantity >= item.data.sumQuantity ? "grey" : "orange"'
+                            :class='item.data.watchedQuantity >= item.data.sumQuantity ? "grey" : "brown"'
                         ) {{watchedNotice(item.data)}}
-                        div.ui.active.inverted.dimmer(v-if='item.loading')
-                            div.ui.loader
                 div.one.wide.column
+            //history内容
+            template(v-if='mode === "history"')
+                div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                    div.right.aligned.column
+                        div.ui.small.basic.buttons
+                            button.ui.icon.button(@click='pageTo("first")')
+                                i.angle.double.left.icon
+                            button.ui.icon.button(@click='pageTo("prev")')
+                                i.angle.left.icon
+                            button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                            button.ui.icon.button(@click='pageTo("next")')
+                                i.angle.right.icon
+                            button.ui.icon.button(@click='pageTo("last")')
+                                i.angle.double.right.icon
+                table.ui.very.basic.table
+                    thead
+                        tr
+                            th 标题
+                            th 订阅时间
+                            th 看完时间
+                            th 总话数
+                            th 看过多遍
+                            th 看过原作
+                    tbody
+                        tr(v-for='item in items')
+                            td
+                                a(:href='diaryDetailURL(item.animation)') {{item.title}}
+                            td {{fmtShortDate(item.createTime)}}
+                            td {{fmtShortDate(item.finishTime)}}
+                            td {{item.sumQuantity}}
+                            td
+                                i.check.icon(v-if='item.watchManyTimes')
+                            td
+                                i.check.icon(v-if='item.watchOriginalWork')
+                div.ui.two.column.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                    div.left.aligned.column
+                        label 共{{pagination.count}}条记录
+                    div.right.aligned.column
+                        div.ui.small.basic.buttons
+                            button.ui.icon.button(@click='pageTo("first")')
+                                i.angle.double.left.icon
+                            button.ui.icon.button(@click='pageTo("prev")')
+                                i.angle.left.icon
+                            button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                            button.ui.icon.button(@click='pageTo("next")')
+                                i.angle.right.icon
+                            button.ui.icon.button(@click='pageTo("last")')
+                                i.angle.double.right.icon
+            //detail 内容
+            div.ui.grid(v-if='mode === "detail"')
+                div.two.wide.column
+                div.nine.wide.column
+                    div.ui.form
+                        div.field(style='margin-bottom: 40px')
+                            h1.text.ui.header {{detail.title}}
+                        div.field
+                            i.calendar.plus.outline.icon
+                            = '订阅时间'
+                            b(style='margin-left: 10px') {{fmtStdDate(detail.createTime)}}
+                        div.field(style='margin-bottom: 24px')
+                            i.calendar.check.icon
+                            = '看完时间'
+                            b(style='margin-left: 10px') {{fmtStdDate(detail.finishTime)}}
+                        div.fields
+                            div.field
+                                div.ui.slider.checkbox
+                                    input(type='checkbox', v-model='detail.watchManyTimes', @click='editor.edited = true')
+                                    label 看过多遍
+                            div.field
+                                div.ui.slider.checkbox
+                                    input(type='checkbox', v-model='detail.watchOriginalWork', @click='editor.edited = true')
+                                    label 看过原作
+                        div.ui.divider
+                        div.field
+                            div.ui.labeled.button
+                                div.ui.button(:class='statusColorEnums[detail.status]', @click='changeStatus') {{statusNameEnums[detail.status]}}
+                                a.ui.basic.label(v-if='!editor.editWatched', @click='editor.editWatched = true; editor.edited = true') {{watchedNotice(detail)}}
+                                div.ui.basic.label(v-if='editor.editWatched')
+                                    input(type='text', v-model='detail.watchedQuantity', placeholder='已看完的话数')
+                        div.field(v-if='editor.edited')
+                            div.ui.fluid.green.icon.small.button(@click='saveEditor')
+                                i.save.icon(style='margin-right: 5px')
+                                = '保存更改'
+                div.three.wide.column
+                    div.ui.card
+                        div.image
+                            img(:src='detail.cover')
+                        div.content
+                            div(style='text-align: center')
+                                template(v-if='detail.sumQuantity && detail.publishedQuantity < detail.sumQuantity')
+                                    i.ui.label.teal {{detail.publishedQuantity || 0}}
+                                    = ' / '
+                                    i.ui.label.grey {{detail.sumQuantity}}
+                                template(v-if='detail.sumQuantity && detail.publishedQuantity >= detail.sumQuantity')
+                                    = '全'
+                                    i.ui.label.grey {{detail.sumQuantity}}
+                                    = '话'
+                        div.extra.content(style='padding: 5px', v-if='detail.nextPublish')
+                            div.ui.label.teal.fluid(style='padding-right: 0px')
+                                span(style='margin: 1px') {{detail.publishedQuantity + 1}}
+                                div.detail {{updateNotice(detail)}}
+                            div(style='overflow: auto; max-height: 130px')
+                                div(style='font-size: 12px', v-for='(plan, index) in rangeOfList(detail.publishPlan, 1)')
+                                    div.ui.label.icon.teal(style='margin-right: 2px; margin-top: 1px; margin-bottom: 1px') {{detail.publishedQuantity + index + 2}}
+                                    = '{{fmtStdDate(plan)}}'
+                div.two.wide.column
+            div.ui.active.inverted.dimmer(v-if='ui.loading')
+                div.ui.loader
+        div.ui.placeholder.segment(v-if='ui.errorInfo')
+            div.ui.icon.header
+                i.times.icon
+                = '{{ui.errorInfo}}'

@@ -42,9 +42,11 @@ interface Diary {
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
+    const webURL = window['webURL']
     const serverURL = window['serverURL']
     const NO_COVER_URL = `${window['staticURL']}/images/no_cover.jpg`
 
+    const PAGE_LIMIT_IN_TABLE = 20
     const WEEKDAY_NAME = [undefined, '周一', '周二', '周三', '周四', '周五', '周六', '周日']
     const SORT_CHOICE = [
         {value: 'week',     title: '周历'},           //按照下次更新的weekday。参与weekday排序的只排本周和下周，更晚时间的排在后面，按时间排序，没有更新的排在最后
@@ -59,9 +61,15 @@ interface Diary {
         {value: 'ready',    title: '未上线'},         //状态为ready
         {value: 'giveup',   title: '已放弃'},         //状态为giveup
     ]
+    const STATUS_NAME_ENUM = {
+        READY: '未上线',
+        WATCHING: '订阅中',
+        COMPLETE: '已看完',
+        GIVEUP: '已放弃'
+    }
 
     const FILTER_FUNCTION = {
-        doing(item: ServerDiary): boolean {return item.status === 'WATCHING'},
+        doing(item: ServerDiary): boolean {return item.status === 'WATCHING' || item.status === 'COMPLETE'},
         updating(item: ServerDiary): boolean {return item.status === 'WATCHING' && item.publish_plan.length > 0},
         stock(item: ServerDiary): boolean {return item.status === 'WATCHING' && item.published_quantity > item.watched_quantity},
         ready(item: ServerDiary): boolean {return item.status === 'READY'},
@@ -150,12 +158,38 @@ interface Diary {
         }
     }
 
+    function getHash(): {mode: 'diary' | 'history' | 'detail', id?: number} {
+        const DIARY_REGEX = /#?\/?diary\/?/
+        const HISTORY_REGEX = /#?\/?history\/?/
+        const DETAIL_REGEX = /#?\/?detail\/([0-9]+)\/?/
+        let hash = window.location.hash
+        if(!hash) {
+            return {mode: 'diary'}
+        }
+        let found = hash.match(DETAIL_REGEX)
+        if(found) {
+            return {
+                mode: 'detail',
+                id: parseInt(decodeURIComponent(found[1]))
+            }
+        }
+        found = hash.match(HISTORY_REGEX)
+        if(found) {
+            return {mode: 'history'}
+        }
+        found = hash.match(DIARY_REGEX)
+        if(found) {
+            return {mode: 'diary'}
+        }
+        return {mode: 'diary'}
+    }
+
     let backend = null
 
     let vm = new Vue({
         el: '#main',
         data: {
-            mode: 'diary',      //diary|history|detail
+            mode: null,         //diary|history|detail
             id: null,           //detail模式下正在查看的animation id
             sort: {
                 title: SORT_CHOICE[0].title,
@@ -168,11 +202,44 @@ interface Diary {
                 by: 0,
                 search: ''
             },
+            pagination: {
+                pageIndex: null,   //当前页码
+                pageLimit: PAGE_LIMIT_IN_TABLE,     //每页的最大条目数量
+                count: 0,          //当前项目在数据库中的总数量
+                maxPageIndex: 1,   //计算得到的最大页码数
+                navigator: []      //生成的页码方案，方便绑定直接跳转页码
+            },
             ui: {
                 loading: false,
-                errorInfo: false
+                errorInfo: false,
+
+                parentAt: null
             },
-            items: []
+            items: [],
+            detail: {
+                title: '',
+                cover: null,
+                animation: null,
+
+                watchedRecord: [],
+                watchedQuantity: 0,
+                finishTime: null,
+                status: "READY",
+
+                watchManyTimes: false,
+                watchOriginalWork: false,
+
+                sumQuantity: null,
+                publishedQuantity: null,
+                publishPlan: [],
+
+                createTime: null,
+                updateTime: null
+            },
+            editor: {
+                edited: false,       //标记是否进行过修改
+                editWatched: false
+            }
         },
         computed: {
             sortChoices() {
@@ -180,25 +247,50 @@ interface Diary {
             },
             filterChoices() {
                 return FILTER_CHOICE
+            },
+            statusNameEnums() {
+                return STATUS_NAME_ENUM
+            },
+            statusColorEnums() {
+                return {
+                    READY: 'red',
+                    WATCHING: 'brown',
+                    COMPLETE: 'violet',
+                    GIVEUP: 'grey'
+                }
+            },
+            parentURL() {
+                return `#/${this.ui.parentAt || 'diary'}/`
+            },
+        },
+        watch: {
+            'editor.edited': function (val) {
+                if(!val) {
+                    this.editor.editWatched = false
+                }
             }
         },
         methods: {
-            //【日记列表】UI逻辑
-            sortBy(index: number) {
-                if(index === this.sort.by) {
-                    this.sort.desc = !this.sort.desc
-                }else{
-                    this.sort.by = index
-                    this.sort.title = SORT_CHOICE[index].title
-                }
-                this.refreshDiaryList()
-            },
-            filterBy(index: number) {
-                if(index !== this.filter.by) {
-                    this.filter.by = index
-                    this.filter.title = FILTER_CHOICE[index].title
-                    this.filter.value = FILTER_CHOICE[index].value
-                    this.refreshDiaryList()
+            //导航逻辑
+            hashChanged() {
+                let {mode, id} = getHash()
+                if(mode != this.mode || id != this.id) {
+                    this.items = []
+                    this.mode = mode
+                    this.id = id
+                    if(mode === 'diary') {
+                        this.ui.parentAt = 'diary'
+                        if(backend == null) {
+                            this.query((ok) => {try{if(ok) this.refreshDiaryList()}catch (e) {console.error(e)}})
+                        }else{
+                            this.refreshDiaryList()
+                        }
+                    }else if(mode === 'history') {
+                        this.ui.parentAt = 'history'
+                        this.requestForHistory()
+                    }else if(mode === 'detail') {
+                        this.requestForDetail()
+                    }
                 }
             },
             //【日记列表】数据逻辑
@@ -247,10 +339,12 @@ interface Diary {
                     client.personal.diaries.partialUpdate(item.data.animation, {watched_quantity: item.data.watchedQuantity + 1}, (ok, s, d) => {
                         if(ok) {
                             item.data.watchedQuantity += 1
-                            for(let i of backend) {
-                                if(i.animation === item.data.animation) {
-                                    i.watched_quantity += 1
-                                    break
+                            if(backend != null) {
+                                for(let i = 0; i < backend.length; ++i) {
+                                    if(backend[i].animation === d.animation) {
+                                        backend[i] = d
+                                        break
+                                    }
                                 }
                             }
                         }else if(s != null) {
@@ -262,7 +356,180 @@ interface Diary {
                     })
                 }
             },
+            //【历史】数据逻辑
+            requestForHistory() {
+                this.ui.loading = true
+                client.personal.diaries.list({
+                    search: this.filter.search.trim(),
+                    status: 'COMPLETE',
+                    ordering: '-finish_time',
+                    limit: this.pagination.pageLimit,
+                    offset: (this.pagination.pageIndex - 1) * this.pagination.pageLimit
+                }, (ok, s, d) => {
+                    if(ok) {
+                        let data, count
+                        if('results' in d && 'count' in d) {
+                            data = d['results']
+                            count = d['count']
+                        }else{
+                            data = d
+                            count = d.length
+                        }
+                        this.items = this.formatForHistory(data)
+                        this.pagination.count = count
+                        this.generatePaginationNavigator()
+                    }else{
+                        this.ui.errorInfo = s === 400 ? '数据获取格式发生错误。' :
+                                            s === 401 ? '未登录。请首先登录以获取权限。' :
+                                            s === 403 ? '您的账户不具备当前操作的权限。' :
+                                            s === 404 ? '未找到服务器地址。' :
+                                            s === 500 ? '服务器发生未知的内部错误。' :
+                                            s == null ? '无法连接到服务器。' : '发生未知的网络错误。'
+                    }
+                    this.ui.loading = false
+                })
+            },
+            formatForHistory(data: ServerDiary[]): Diary[] {
+                let ret = []
+                for(let item of data) ret[ret.length] = transDiaryToLocal(item)
+                return ret
+            },
+            generatePaginationNavigator() {
+                this.pagination.maxPageIndex = Math.ceil(this.pagination.count / this.pagination.pageLimit)
+                //处理导航器的页码分布
+                if(this.pagination.maxPageIndex > 1 || this.pagination.pageIndex > this.pagination.maxPageIndex) {
+                    const MAX_COUNT = 7
+                    let first = this.pagination.pageIndex - Math.floor(MAX_COUNT / 2)
+                    if(first + MAX_COUNT > this.pagination.maxPageIndex) {
+                        first = this.pagination.maxPageIndex - MAX_COUNT + 1
+                    }
+                    if(first < 1) {
+                        first = 1
+                    }
+                    let last = first + MAX_COUNT > this.pagination.maxPageIndex ? this.pagination.maxPageIndex : first + MAX_COUNT - 1
+                    let arr = []
+                    for(let i = first; i <= last; ++i) {
+                        arr[arr.length] = i
+                    }
+                    this.pagination.navigator = arr
+                }
+            },
+            //【详情页】数据逻辑
+            requestForDetail(data?: ServerDiary) {
+                if(data != undefined) {
+                    doSomething(data)
+                }else if(backend != null) {
+                    for(let item of backend) {
+                        if(item.animation === this.id) {
+                            doSomething(item)
+                            return
+                        }
+                    }
+                }
+                this.ui.loading = true
+                client.personal.diaries.retrieve(this.id, (ok, s, d) => {
+                    if(ok) {
+                        doSomething(d)
+                    }else{
+                        this.ui.errorInfo = s === 401 || s === 403 ? '请先登录。' :
+                                            s === 404 ? '找不到资源。' :
+                                            s === 500 ? '内部服务器发生预料之外的错误。' : '网络连接发生错误。'
+                    }
+                    this.ui.loading = false
+                })
+
+                function doSomething(data: ServerDiary) {
+                    vm.detail = transDiaryToLocal(data)
+                    vm.editor.edited = false
+                }
+            },
+            saveEditor() {
+                if(this.editor.edited) {
+                    client.personal.diaries.partialUpdate(this.id, {
+                        watch_many_times: this.detail.watchManyTimes,
+                        watch_original_work: this.detail.watchOriginalWork,
+                        status: this.detail.status,
+                        watched_quantity: this.detail.watchedQuantity || 0
+                    }, (ok, s, d) => {
+                        if(ok) {
+                            this.requestForDetail(d)
+                            this.editor.edited = false
+                            if(backend != null) {
+                                for(let i = 0; i < backend.length; ++i) {
+                                    if(backend[i].animation === d.animation) {
+                                        backend[i] = d
+                                        break
+                                    }
+                                }
+                            }
+                        }else if(s != null) {
+                            alert(`发生预料之外的错误。错误代码：${s}`)
+                        }else{
+                            alert('网络连接发生错误。')
+                        }
+                    })
+                }
+            },
+            //【日记列表】UI逻辑
+            sortBy(index: number) {
+                if(index === this.sort.by) {
+                    this.sort.desc = !this.sort.desc
+                }else{
+                    this.sort.by = index
+                    this.sort.title = SORT_CHOICE[index].title
+                }
+                this.refreshDiaryList()
+            },
+            filterBy(index: number) {
+                if(index !== this.filter.by) {
+                    this.filter.by = index
+                    this.filter.title = FILTER_CHOICE[index].title
+                    this.filter.value = FILTER_CHOICE[index].value
+                    this.refreshDiaryList()
+                }
+            },
+            searchFor() {
+                if(this.mode === 'diary') {
+                    this.refreshDiaryList()
+                }else{
+                    this.requestForHistory()
+                }
+            },
+            //【历史】UI逻辑
+            pageTo(pageIndex: number | 'first' | 'prev' | 'next' | 'last') {
+                let goal
+                if(pageIndex === 'first') {
+                    goal = 1
+                }else if(pageIndex === 'prev') {
+                    goal = this.pagination.pageIndex > 1 ? this.pagination.pageIndex - 1 : 1
+                }else if(pageIndex === 'next') {
+                    goal = this.pagination.pageIndex < this.pagination.maxPageIndex ? this.pagination.pageIndex + 1 :
+                        this.pagination.maxPageIndex > 0 ? this.pagination.maxPageIndex : 1
+                }else if(pageIndex === 'last') {
+                    goal = this.pagination.maxPageIndex > 0 ? this.pagination.maxPageIndex : 1
+                }else if(typeof pageIndex === 'string') {
+                    goal = parseInt(pageIndex)
+                }else if(typeof pageIndex === 'number') {
+                    goal = pageIndex
+                }else{
+                    goal = null
+                }
+                if(goal != null && goal !== this.pagination.pageIndex) {
+                    this.pagination.pageIndex = goal
+                    this.requestForHistory()
+                }
+            },
+            //【详情页】UI逻辑
+            changeStatus() {
+                if(this.detail.status === 'GIVEUP') this.detail.status = 'WATCHING'
+                else this.detail.status = 'GIVEUP'
+                this.editor.edited = true
+            },
+
             //辅助函数
+            animationDetailURL(animationId: number): string {
+                return `${webURL}/database/#/animations/detail/${animationId}/`
+            },
             diaryDetailURL(animationId: number): string {
                 return `#/detail/${animationId}/`
             },
@@ -278,22 +545,37 @@ interface Diary {
             watchedNotice(item: Diary): string {
                 if(item.watchedQuantity === 0) return '还没开始看'
                 else if(item.watchedQuantity >= item.sumQuantity) return '已全部看完'
-                else return `已看完${item.watchedQuantity}话`
+                else return `已看完 ${item.watchedQuantity} 话`
+            },
+            fmtStdDate(date: Date): string {
+                if(date) {
+                    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours() < 10 ? '0' : ''}${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}`
+                }else{
+                    return null
+                }
+            },
+            fmtShortDate(date: Date): string {
+                if(date) {
+                    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
+                }else{
+                    return null
+                }
+            },
+            rangeOfList(arr: any[], from: number, to?: number): any[] {
+                let ret = []
+                if(to == undefined) to = arr.length
+                for(let i = from; i < to; ++i) ret[ret.length] = arr[i]
+                return ret
             }
         },
         created() {
-            this.query((ok) => {
-                try{
-                    if(ok) this.refreshDiaryList()
-                }catch (e) {
-                    console.error(e)
-                }
-            })
+            this.hashChanged()
         }
     })
 
     $('#main .ui.dropdown.dropdown-menu').dropdown({action: 'hide'})
     $('#main .ui.dropdown.dropdown-select').dropdown({fullTextSearch: true})
 
+    window.onhashchange = vm.hashChanged
     window['vms']['main'] = vm
 })()

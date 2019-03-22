@@ -1,8 +1,8 @@
 extends meta
 
 block body
-    div.ui.fixed.blue.inverted.menu
-        div#top-bar.ui.container
+    div#top-bar.ui.fixed.blue.inverted.menu
+        div.ui.container
             a.header.item(href=`${webURL}/`) Animation Board
             a.item(href=`${webURL}/index/`) 主页
             a.item(href=`${webURL}/personal/diaries/`, v-if='profile.is_authenticated') 日记
@@ -15,17 +15,67 @@ block body
                     a.item(href=`${webURL}/database/#/animations/`) 番剧
                     a.item(href=`${webURL}/database/#/staffs/`) STAFF
                     a.item(href=`${webURL}/database/#/tags/`) 标签
-            a.item.right(href=`${webURL}/login/`, v-if='!profile.is_authenticated') 登录
-            a.item(href=`${webURL}/register/`, v-if='!profile.is_authenticated') 注册
-            //TODO message
-            div.ui.simple.dropdown.item.right(v-if='profile.is_authenticated')
-                a(href=`${webURL}/profile/#/`) {{profile.name}}
-                i.dropdown.icon
-                div.menu
-                    a.item(href=`${webURL}/profile/#/setting/`) 偏好设置
-                    a.item(href=`${webURL}/admin/`, v-if='profile.is_staff') 管理人员界面
-                    a.item(@click='logout') 退出登录
+            template(v-if='!profile.is_authenticated')
+                a.item.right(href=`${webURL}/login/`) 登录
+                a.item(href=`${webURL}/register/`) 注册
+            template(v-else)
+                a.item.icon.right(@click='openMessageModal')
+                    template(v-if='message.unreadCount')
+                        i.envelope.icon(style='margin-right: 5px')
+                        span {{message.unreadCount}}
+                    template(v-else)
+                        i.envelope.outline.icon
+                div.ui.simple.dropdown.item
+                    a(href=`${webURL}/profile/#/`) {{profile.name}}
+                    i.dropdown.icon
+                    div.menu
+                        a.item(href=`${webURL}/profile/#/setting/`) 偏好设置
+                        a.item(href=`${webURL}/admin/`, v-if='profile.is_staff') 管理人员界面
+                        a.item(@click='logout') 退出登录
+        div#message-modal.ui.modal
+            div.header 消息
+            div.content
+                div.ui.grid
+                    div.four.wide.column
+                        div.ui.vertical.fluid.tabular.menu
+                            a.item(v-for='(type, index) in msgTypeChoices',
+                            :class='{active: index === message.tab}', @click='message.tab = index') {{type.title}}
+                                div.ui.label(:class='message.tabUnreadCount[index] ? "teal" : "grey"') {{message.tabUnreadCount[index]}}
+                        button.fluid.ui.basic.icon.small.button(v-if='message.unreadCount', @click='markAllRead')
+                            i.check.icon(style='margin-right: 5px')
+                            = '全部标记为已读'
+                    div.twelve.wide.column(style='overflow: auto; max-height: 550px')
+                        div(style='width: 100%; color: #DADADA; text-align: center', v-if='!(message.tabItems[message.tab] && message.tabItems[message.tab].length)') 没有未读消息
+                        div.ui.segment(v-for='(msg, index) in message.tabItems[message.tab]', v-if='message.tabItems[message.tab].length')
+                            div.ui.feed
+                                template(v-if='msg.type === "UPDATE"')
+                                    div.event(v-for='animation in msg.content')
+                                        div.content
+                                            div.summary
+                                                a.user(:href='diaryDetailURL(animation.animationId)') {{animation.animationTitle}}
+                                                = '更新了'
+                                                div.date {{fmtCreateTime(msg.createTime)}}
+                                            div.extra.text 第{{joinCountRange(animation.list)}}话已更新
+                                template(v-if='msg.type === "CHAT"')
+                                    div.event
+                                        div.content
+                                            div.summary
+                                                a.user {{msg.senderName}}
+                                                div.date {{fmtCreateTime(msg.createTime)}}
+                                            div.extra.text(style='margin: 7px') {{msg.content}}
+                                template(v-if='msg.type === "SYS"')
+                                    div.event
+                                        div.content
+                                            div.summary
+                                                div.date {{fmtCreateTime(msg.createTime)}}
+                                            div.extra.text(style='margin: 7px') {{msg.content}}
+                            div.ui.bottom.right.attached.label(v-if='msg.read') 已读
+                            a.ui.bottom.right.attached.orange.label(v-else, @click='markAsRead(message.tab, index)') 标记为已读
+
+                div.ui.active.inverted.dimmer(v-if='message.loading')
+                    div.ui.loader
     div(style='padding-top: 72px; padding-bottom: 72px')
         block content
     div(style='text-align: center') Animation Board @ Heer Kirov
+
     script(src=`${staticURL}/js/views/layout.js`)
