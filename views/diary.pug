@@ -15,9 +15,14 @@ block content
             //detail 工具栏
             a.ui.icon.item(:href='parentURL')
                 i.angle.left.icon
-            a.ui.right.icon.item(:href='animationDetailURL(detail.animation)')
+            div.ui.item {{editor.edited ? "编写日记" : "日记"}}
+            a.right.ui.icon.item(:href='commentDetailURL(detail.animation)')
+                i.keyboard.icon(style='margin-right: 5px')
+                = '评价'
+            a.ui.icon.item(:href='animationDetailURL(detail.animation)')
                 i.database.icon(style='margin-right: 5px')
                 = '数据库页面'
+
         div.ui.menu(v-show='mode === "diary" || mode === "history"')
             //diary 工具栏
             div.ui.pointing.dropdown.item.dropdown-menu {{mode === "diary" ? "日记" : "足迹"}}
@@ -40,7 +45,7 @@ block content
                     div.ui.transparent.icon.input
                         input(type='text', placeholder='搜索…', v-model='filter.search', @keydown.enter='searchFor')
                         i.search.link.icon(@click='searchFor')
-        div.ui.segment
+        div.ui.segment(v-if='!ui.errorInfo')
             //diary 内容
             div.ui.grid(v-if='mode === "diary"')
                 div.one.wide.column

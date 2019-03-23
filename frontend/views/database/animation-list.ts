@@ -3,6 +3,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
     const Vue = window['Vue']
     const client = window['client']
     const prefix = window['prefix'] || ''
+    const setTitle = window['setTitle']
     const serverURL = window['serverURL']
 
     const PAGE_LIMIT_IN_TABLE = 20
@@ -134,6 +135,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
         methods: {
             //系统事件
             load(params?: Object) {
+                setTitle('番剧')
                 if(params) this.analyseHashParameters(params)
                 this.panel.errorInfo = null
                 this.panel.loading = true

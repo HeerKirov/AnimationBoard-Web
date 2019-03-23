@@ -19,7 +19,8 @@ html
       = `window['staticURL'] = '${staticURL}';`
       = `window['client'] = new Client({serverURL, tokenPrefix: '${prefix}'});`
       = `window['prefix'] = '${prefix}';`
-      = `window['vms'] = {}`
+      = `window['vms'] = {};`
+      = `window['setTitle'] = function(t) {document.title = t ? t + ' - ${title}' : '${title}'}`
     block import
   body
     block body

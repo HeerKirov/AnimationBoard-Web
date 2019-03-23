@@ -1,6 +1,7 @@
 function createTagListVue(selectName: string, location: {mode: string, tab: string, id: number | string}) {
     const Vue = window['Vue']
     const client = window['client']
+    const setTitle = window['setTitle']
 
     let vm = new Vue({
         el: selectName,
@@ -21,6 +22,7 @@ function createTagListVue(selectName: string, location: {mode: string, tab: stri
         },
         methods: {
             load() {
+                setTitle('标签')
                 this.panel.errorInfo = null
                 this.panel.loading = false
                 this.query()

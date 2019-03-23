@@ -5,5 +5,55 @@ block title
 block import
 
 block content
-    div.ui.container
-        h1 home
+    div#main.ui.container
+        div.ui.grid
+            div.three.wide.column
+                div.ui.segment
+                    h5.ui.header 追番
+                    div.ui.divider
+                    h5.ui.header(style='margin-top: 0') 补番
+            div.ten.wide.column
+                div.ui.segment
+                    h4.ui.horizontal.divider.header {{season}}
+                    div.ui.grid
+                        div.five.column.row
+                            div.column
+                                div.ui.tag.label.blue MON
+                            div.column
+                                div.ui.tag.label.blue TUE
+                            div.column
+                                div.ui.tag.label.blue WED
+                            div.column
+                                div.ui.tag.label.blue THU
+                            div.column
+                                div.ui.tag.label.blue FRI
+            div.three.wide.column
+                //登录前的提示框
+                div.ui.segment(style='text-align: center', v-if='profile.isAuthenticated == false')
+                    i.user.secret.huge.icon(style='margin: 15px')
+                    a.ui.fluid.blue.button(href=`${webURL}/login/`) 登录
+                    div.ui.horizontal.divider 或者
+                    a.ui.fluid.green.button(href=`${webURL}/register/`) 新用户注册
+                //登录后的资料卡
+                div.ui.card(v-if='profile.isAuthenticated == true')
+                    div.image
+                        img(:src='profile.cover')
+                    div.content
+                        div.header {{profile.name}}
+                    div.extra.content
+                        div.ui.grid(style='text-align: center')
+                            div.eight.wide.column
+                                a(href=`${webURL}/personal/diaries/#/diary/`) 日记
+                            div.eight.wide.column
+                                a(href=`${webURL}/personal/comments/#/feed/`) 评价
+                            div.eight.wide.column
+                                a(href=`${webURL}/personal/diaries/#/history/`) 足迹
+                            div.eight.wide.column
+                                a(href=`${webURL}/personal/comments/#/rating/`) 评分表
+    //番剧更新周历：展示一周内每天更新的番剧
+    //存货和更新提示：提示还没有看的追番的列表
+    //补番提示：提示所有已完结的番的补番进度
+    //未登录时有登录提示，登录后有肖像框和部分快捷按钮
+    //时间提示：如【2019·春季】，可以放在番剧周历上面
+
+    //table创想：纵向排列，按照时间轴定位y坐标，删除无内容的时间轴。使用time|title|cover组合标记点。

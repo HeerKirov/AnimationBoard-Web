@@ -3,6 +3,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
     const Vue = window['Vue']
     const client = window['client']
     const webURL = window['webURL']
+    const setTitle = window['setTitle']
     const serverURL = window['serverURL']
 
     const NO_COVER_URL = `${window['staticURL']}/images/no_cover.jpg`
@@ -178,6 +179,9 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                     }
                 })
             },
+            gotoComment() {
+                window.location.href = `${webURL}/personal/comments/#/detail/${this.id}/`
+            },
             gotoDiary() {
                 if(this.detail.haveDiary) {
                     goto(this.id)
@@ -248,6 +252,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                 }
 
                 let data = this.detail
+                setTitle(`${backend.title} - 番剧`)
                 data.cover = backend.cover ? `${serverURL}/static/cover/${backend.cover}` : null
                 data.title = backend.title
                 data.originTitle = backend.origin_title

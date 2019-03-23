@@ -2,6 +2,7 @@ function createStaffDetailVue(selectName: string, location: {mode: string, tab: 
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
+    const setTitle = window['setTitle']
     const serverURL = window['serverURL']
 
     const ABOUT_ANIMATION_COUNT = 6
@@ -48,6 +49,7 @@ function createStaffDetailVue(selectName: string, location: {mode: string, tab: 
             },
             refresh(params?: Object) {
                 this.editMode = location.mode === 'edit'
+                setTitle(this.editMode ? '编辑STAFF' : 'STAFF')
                 if(this.id == null || location.id != this.id || (params && params['refresh'])) {
                     this.id = location.id
                     this.query((ok) => {
@@ -108,6 +110,7 @@ function createStaffDetailVue(selectName: string, location: {mode: string, tab: 
             },
             refreshDetail() {
                 if(backend) {
+                    setTitle(`${backend.name} - STAFF`)
                     this.data.id = backend.id
                     this.data.name = backend.name
                     this.data.originName = backend.origin_name
@@ -116,6 +119,7 @@ function createStaffDetailVue(selectName: string, location: {mode: string, tab: 
             },
             refreshEditor() {
                 if(backend) {
+                    setTitle(`${backend.name} - 编辑STAFF`)
                     this.editor.name = backend.name
                     this.editor.originName = backend.origin_name
                     this.editor.isOrganization = backend.is_organization

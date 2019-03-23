@@ -1,0 +1,162 @@
+extends layout
+
+block title
+    = `评价 - ${title}`
+
+block content
+    div#main.ui.container
+        div.ui.menu(v-if='mode === "detail"')
+            //detail 工具栏
+            a.ui.icon.item(:href='parentURL')
+                i.angle.left.icon
+            div.ui.item {{detail.mode === "detail" ? "评价" : detail.mode === "edit" ? "编辑评价" : "发表评价"}}
+            a.ui.right.icon.item(href='animationDetailURL(detail.animation)')
+                i.database.icon(style='margin-right: 5px')
+                = '数据库页面'
+            a.ui.icon.item(@click='switchToEditMode', v-if='detail.mode === "detail"')
+                i.edit.icon(style='margin-right: 5px')
+                = '编辑'
+            a.ui.icon.item(@click='saveEditor', v-else)
+                i.check.icon(style='margin-right: 5px')
+                = '提交并保存'
+        div.ui.menu(v-show='mode === "feed" || mode === "rating"')
+            div.ui.pointing.dropdown.item.dropdown-menu {{mode === "feed" ? "动态" : "评分表"}}
+                i.dropdown.icon
+                div.menu
+                    a.item(href='#/feed/') 动态
+                    a.item(href='#/rating/') 评分表
+            div.right.ui.floating.dropdown.icon.item.dropdown-menu(v-show='mode === "rating"')
+                span {{sort.title}}
+                i(style='margin-left: 5px', :class='sort.desc ? "sort amount down icon" : "sort amount up icon"')
+                div.menu
+                    div.item(v-for='(choice, index) in sortChoices', @click='sortBy(index)') 按{{choice.title}}
+            a.ui.icon.item(v-show='mode === "rating"', @click='filter.show = !filter.show')
+                i.filter.icon
+            div.menu(:class='{right: mode === "feed"}')
+                div.item
+                    div.ui.transparent.icon.input
+                        input(type='text', placeholder='搜索…', v-model='filter.search', @keydown.enter='searchFor')
+                        i.search.link.icon(@click='searchFor')
+        div.ui.segment(v-show='filter.show')
+            div.ui.grid
+                div.six.wide.column
+                    h5.ui.header 内容
+                    div.ui.toggle.checkbox
+                        input(type='checkbox', v-model='filter.notNull')
+                        label {{filter.notNull ? "已评分内容" : "未评分内容"}}
+                div.nine.wide.column
+                    template(v-if='filter.notNull')
+                        h5.ui.header 评分范围筛选
+                        div.ui.labeled.input
+                            input(type='number', min=0.5, max=5, step=0.5, v-model='filter.scoreMin', placeholder='最小值', style='min-width: 90px')
+                            div.ui.basic.label 到
+                            input(type='number', min=0.5, max=5, step=0.5, v-model='filter.scoreMax', placeholder='最大值', style='min-width: 90px')
+                div.one.wide.column
+                    h5.ui.header(style='visibility: hidden') submit
+                    button.ui.icon.button(@click='requestForRating')
+                        i.check.icon
+        div.ui.segment(v-if='!ui.errorInfo')
+            div.ui.grid(v-if='mode === "feed"')
+                div.two.wide.column
+                div.twelve.wide.column
+                    div.ui.feed
+                        div.event(style='position: relative', v-for='item in feed.data')
+                            div.label(style='width: 4em')
+                                img(:src=`item.cover`, style='border-radius: 0')
+                            div.content
+                                div.summary
+                                    a.user(:href='commentDetailURL(item.animation)') {{item.title}}
+                                    div.date {{fmtStdDate(item.updateTime)}}
+                                i(style='font-size: 13px') {{item.shortComment}}
+                                div.extra.text {{item.article}}
+                            div(style='position: absolute; right: 0; top: 0.6em; width: 125px; font-size: 18px', v-html='star(item.score, "orange")')
+                    div(style='text-align: center; padding: 25px', v-if='!feed.loading && (feed.count == null || feed.offset < feed.count)', @mouseenter='requestForFeed()')
+                        a.ui.text 加载更多…
+                    div(style='text-align: center; padding: 25px', v-if='feed.loading')
+                        div.ui.active.inline.loader
+                div.two.wide.column
+            template(v-if='mode === "rating"')
+                div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                    div.right.aligned.column
+                        div.ui.small.basic.buttons
+                            button.ui.icon.button(@click='pageTo("first")')
+                                i.angle.double.left.icon
+                            button.ui.icon.button(@click='pageTo("prev")')
+                                i.angle.left.icon
+                            button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                            button.ui.icon.button(@click='pageTo("next")')
+                                i.angle.right.icon
+                            button.ui.icon.button(@click='pageTo("last")')
+                                i.angle.double.right.icon
+                table.ui.very.basic.table
+                    thead
+                        tr
+                            th.seven.wide 标题
+                            th.one.wide 评分
+                            th.five.wide
+                            th.three.wide 更新时间
+                    tbody
+                        tr(v-for='item in rating.data')
+                            td
+                                a(:href='commentDetailURL(item.animation)') {{item.title}}
+                            td {{item.score}}
+                            td
+                                div(v-if='item.score', v-html='star(item.score * 2, "black")')
+                            td {{fmtStdDate(item.updateTime)}}
+                div.ui.two.column.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                    div.left.aligned.column
+                        label 共{{pagination.count}}条记录
+                    div.right.aligned.column
+                        div.ui.small.basic.buttons
+                            button.ui.icon.button(@click='pageTo("first")')
+                                i.angle.double.left.icon
+                            button.ui.icon.button(@click='pageTo("prev")')
+                                i.angle.left.icon
+                            button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                            button.ui.icon.button(@click='pageTo("next")')
+                                i.angle.right.icon
+                            button.ui.icon.button(@click='pageTo("last")')
+                                i.angle.double.right.icon
+            div.ui.grid(v-if='mode === "detail"')
+                div.two.wide.column
+                div.twelve.wide.column
+                    div.ui.form
+                        div.fields
+                            div.two.wide.field
+                                img(:src='detail.cover', style='width: 100%')
+                            div.eight.wide.field
+                                h1.text.ui.header {{detail.title}}
+                            div.six.wide.field(style='position: relative; text-align: right', v-if='detail.mode === "detail"')
+                                h2(style='position: absolute; right: 140px; top: 0.05em; color: #f2711c') {{detail.score / 2}}
+                                div(v-html='star(detail.score, "orange")', style='position: absolute; width: 140px; right: 0; top: 0.3em; font-size: 20px; text-align: left')
+                                div(style='margin-top: 2.5em')
+                                    h2(style='margin-bottom: 0.2em') {{scoreTitle[Math.ceil(detail.score / 2)]}}
+                                    span(style='color: #ADADAD') {{scoreDescription[detail.score]}}
+                            div.six.wide.field(style='position: relative; text-align: right', v-else)
+                                input(style='position: absolute; right: 150px; width: 6em; top: -0.15em', type='number', placeholder='评分'
+                                step=0.5, max=5, min=0.5, v-model='detail.editor.score')
+                                div(v-html='star(editorScore * 2, "orange")', style='position: absolute; width: 140px; right: 0; top: 0.3em; font-size: 20px; text-align: left', v-if='editorScore')
+                                div(v-html='star(10, "outline orange")', style='position: absolute; width: 140px; right: 0; top: 0.3em; font-size: 20px; text-align: left', v-else)
+                                div(style='margin-top: 2.5em')
+                                    h2(style='margin-bottom: 0.2em') {{scoreTitle[Math.ceil(editorScore)]}}
+                                    span(style='color: #ADADAD') {{scoreDescription[editorScore * 2]}}
+                        div.field
+                            div.ui.divider
+                            div.fields
+                                div.two.wide.field
+                                    label 一句话概括
+                                div.fourteen.wide.field
+                                    i(v-if='detail.mode === "detail"') {{detail.shortComment}}
+                                    input(type='text', v-model='detail.editor.shortComment', v-else)
+                        div.field
+                            div.ui.divider
+                            label 漫评
+                            div(style='margin: 10px', v-if='detail.mode === "detail"') {{detail.article}}
+                            textarea(v-model='detail.editor.article', v-else)
+                div.two.wide.column
+            div.ui.active.inverted.dimmer(v-if='ui.loading')
+                div.ui.loader
+        div.ui.placeholder.segment(v-if='ui.errorInfo')
+            div.ui.icon.header
+                i.times.icon
+                = '{{ui.errorInfo}}'

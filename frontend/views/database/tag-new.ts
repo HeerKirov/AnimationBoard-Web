@@ -2,6 +2,7 @@ function createTagNewVue(selectName: string, location: {mode: string, tab: strin
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
+    const setTitle = window['setTitle']
     const serverURL = window['serverURL']
     function newItem() {
         return {
@@ -24,6 +25,7 @@ function createTagNewVue(selectName: string, location: {mode: string, tab: strin
         },
         methods: {
             load() {
+                setTitle('新建标签')
                 this.ui.loading = true
                 if(window['vms']['top-bar'].profile.is_staff != null) doSomething(window['vms']['top-bar'].profile.is_staff)
                 else client.profile.info.get((ok, s, d) => doSomething(ok && d && d['is_staff']))

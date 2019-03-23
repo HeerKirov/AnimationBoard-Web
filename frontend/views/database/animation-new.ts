@@ -2,6 +2,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
+    const setTitle = window['setTitle']
     const serverURL = window['serverURL']
 
     const NO_COVER_URL = `${window['staticURL']}/images/no_cover.jpg`
@@ -313,6 +314,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
             //事件的次级程序
             eventComeTo(callback: (ok: boolean) => void = null) {
                 if(location.mode === 'new') {
+                    setTitle('新建番剧')
                     this.editId = null
                     if(backup != null) {
                         this.refreshByBackup(backup)
@@ -322,6 +324,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                     }
                     if(callback != null) callback(true)
                 }else if(location.mode === 'edit') {
+                    setTitle('编辑番剧')
                     this.editId = location.id
                     if(backend != null && backendId != null && backendId === this.editId) {
                         this.refreshEditor()
@@ -367,6 +370,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                         }
                     }
                 }
+                setTitle(`${backend.title} - 编辑番剧`)
                 this.data.title = backend.title
                 this.data.originTitle = backend.origin_title
                 this.data.otherTitle = backend.other_title

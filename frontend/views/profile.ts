@@ -2,6 +2,7 @@
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
+    const setTitle = window['setTitle']
     const serverURL = window['serverURL']
     const NO_COVER_URL = `${window['staticURL']}/images/no_cover.jpg`
 
@@ -44,9 +45,16 @@
                     let match = window.location.hash.match(/#\/?([a-zA-Z]*)\/?/)
                     if(match) {
                         let name = match[1]
-                        if(name === 'setting') this.ui.tab = 1
-                        else if(name === 'password') this.ui.tab = 2
-                        else this.ui.tab = 0
+                        if(name === 'setting') {
+                            this.ui.tab = 1
+                            setTitle('偏好设置')
+                        }else if(name === 'password') {
+                            this.ui.tab = 2
+                            setTitle('密码')
+                        }else{
+                            this.ui.tab = 0
+                            setTitle('资料卡片')
+                        }
                     }else{
                         this.ui.tab = 0
                     }

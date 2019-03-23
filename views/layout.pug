@@ -5,9 +5,10 @@ block body
         div.ui.container
             a.header.item(href=`${webURL}/`) Animation Board
             a.item(href=`${webURL}/index/`) 主页
-            a.item(href=`${webURL}/personal/diaries/`, v-if='profile.is_authenticated') 日记
-            a.item(href=`${webURL}/personal/comments/`) 评论
-            a.item(href=`${webURL}/statistics/`, v-if='profile.is_authenticated') 统计
+            template(v-if='profile.is_authenticated')
+                a.item(href=`${webURL}/personal/diaries/`) 日记
+                a.item(href=`${webURL}/personal/comments/`) 评价
+                a.item(href=`${webURL}/statistics/`) 统计
             div.ui.simple.dropdown.item
                 a(href=`${webURL}/database/#/`) 数据库
                 i.dropdown.icon
@@ -74,8 +75,8 @@ block body
 
                 div.ui.active.inverted.dimmer(v-if='message.loading')
                     div.ui.loader
+    script(src=`${staticURL}/js/views/layout.js`)
     div(style='padding-top: 72px; padding-bottom: 72px')
         block content
     div(style='text-align: center') Animation Board @ Heer Kirov
 
-    script(src=`${staticURL}/js/views/layout.js`)

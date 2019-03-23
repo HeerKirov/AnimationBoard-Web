@@ -1,6 +1,7 @@
 function createStaffListVue(selectName: string, location: {mode: string, tab: string, id: number | string}) {
     const Vue = window['Vue']
     const client = window['client']
+    const setTitle = window['setTitle']
 
     const PAGE_LIMIT_IN_TABLE = 20
     const SORT_CHOICE = [
@@ -52,6 +53,7 @@ function createStaffListVue(selectName: string, location: {mode: string, tab: st
         },
         methods: {
             load() {
+                setTitle('STAFF')
                 this.panel.errorInfo = null
                 this.panel.loading = false
                 this.query()

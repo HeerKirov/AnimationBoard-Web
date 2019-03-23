@@ -3,20 +3,30 @@
     const $ = window['$']
     const client = window['client']
     const webURL = window['webURL']
+    const serverURL = window['serverURL']
+    const NO_COVER_URL = `${window['staticURL']}/images/no_cover.jpg`
 
     const MSG_TYPE = [
         {value: 'UPDATE', title: '番剧更新'},
         {value: 'CHAT', title: '私信聊天'},
         {value: 'SYS', title: '系统通知'},
     ]
+
+    let delegateList = []
+
     let vm = new Vue({
         el: '#top-bar',
         data: {
             profile: {
                 is_authenticated: null,
+                is_staff: null,
+                is_superuser: null,
                 username: '',
                 name: '',
-                is_staff: null
+                cover: null,
+
+                night_update_mode: null,
+                animation_update_notice: null
             },
             message: {
                 unreadCount: 0,
@@ -157,19 +167,35 @@
                     ret += i
                 }
                 return ret
+            },
+            //委托
+            delegateOnProfile(delegate: (profile) => void) {
+                if(this.profile.is_authenticated != null) {
+                    delegate(this.profile)
+                }else{
+                    delegateList.splice(delegateList.length, 0, delegate)
+                }
             }
         },
         created() {
             client.profile.info.get((ok, s, d) => {
                 if(ok) {
                     this.profile.is_authenticated = true
+                    this.profile.is_staff = d['is_staff']
+                    this.profile.is_superuser = d['is_superuser']
                     this.profile.username = d['username']
                     this.profile.name = d['name']
-                    this.profile.is_staff = d['is_staff']
+                    this.profile.cover = d['cover'] ? `${serverURL}/static/cover/${d['cover']}` : NO_COVER_URL
+                    this.profile.night_update_mode = d['night_update_mode']
+                    this.profile.animation_update_notice = d['animation_update_notice']
                     this.requestUnreadCount()
                 }else{
                     this.profile.is_authenticated = false
                     this.profile.is_staff = false
+                }
+                if(delegateList.length > 0) {
+                    for(let delegate of delegateList) delegate(this.profile)
+                    delegateList = []
                 }
             })
         }

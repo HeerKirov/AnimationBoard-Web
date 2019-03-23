@@ -44,6 +44,7 @@ interface Diary {
     const client = window['client']
     const webURL = window['webURL']
     const serverURL = window['serverURL']
+    const setTitle = window['setTitle']
     const NO_COVER_URL = `${window['staticURL']}/images/no_cover.jpg`
 
     const PAGE_LIMIT_IN_TABLE = 20
@@ -106,13 +107,6 @@ interface Diary {
         }
     }
 
-    function cloneArray<T>(a: T[]): T[] {
-        let ret = []
-        for(let i of a) {
-            ret[ret.length] = i
-        }
-        return ret
-    }
     function mapArray<T, R>(a: T[], func: (T) => R): R[] {
         let ret = []
         for(let i of a) {
@@ -144,6 +138,9 @@ interface Diary {
             createTime: new Date(origin.create_time),
             updateTime: new Date(origin.update_time),
             nextPublish: origin.publish_plan.length ? (function (next) {
+                if(vm.ui.nightMode) {
+                    next.setHours(next.getHours() - 2)
+                }
                 let weekday = next.getDay() || 7
                 let firstDayOfWeek = (function (d: Date, w: number) {
                         let ret = new Date()
@@ -203,7 +200,7 @@ interface Diary {
                 search: ''
             },
             pagination: {
-                pageIndex: null,   //当前页码
+                pageIndex: 1,   //当前页码
                 pageLimit: PAGE_LIMIT_IN_TABLE,     //每页的最大条目数量
                 count: 0,          //当前项目在数据库中的总数量
                 maxPageIndex: 1,   //计算得到的最大页码数
@@ -213,7 +210,8 @@ interface Diary {
                 loading: false,
                 errorInfo: false,
 
-                parentAt: null
+                parentAt: null,
+                nightMode: null,    //夜间看番模式。26:00模式
             },
             items: [],
             detail: {
@@ -279,6 +277,7 @@ interface Diary {
                     this.mode = mode
                     this.id = id
                     if(mode === 'diary') {
+                        setTitle('日记')
                         this.ui.parentAt = 'diary'
                         if(backend == null) {
                             this.query((ok) => {try{if(ok) this.refreshDiaryList()}catch (e) {console.error(e)}})
@@ -286,9 +285,11 @@ interface Diary {
                             this.refreshDiaryList()
                         }
                     }else if(mode === 'history') {
+                        setTitle('足迹')
                         this.ui.parentAt = 'history'
                         this.requestForHistory()
                     }else if(mode === 'detail') {
+                        setTitle('详情')
                         this.requestForDetail()
                     }
                 }
@@ -312,6 +313,7 @@ interface Diary {
             },
             refreshDiaryList() {
                 /** 将query请求到的backend数据刷新到显示列表中。这个过程会处理筛选或排序等工作。 */
+                this.requestForSetting()
                 let ret: Diary[] = []
                 let filterFunction = FILTER_FUNCTION[this.filter.value]
                 let searchText = this.filter.search.trim() ? this.filter.search.trim().split(' ') : null
@@ -354,6 +356,19 @@ interface Diary {
                         }
                         item.loading = false
                     })
+                }
+            },
+            requestForSetting() {
+                if(this.ui.nightMode == null) {
+                    if(window['vms']['top-bar'].profile.is_authenticated != null) {
+                        this.ui.nightMode = window['vms']['top-bar'].profile.night_update_mode
+                    }else{
+                        client.profile.info.get((ok, s, d) => {
+                            if(ok) {
+                                this.ui.nightMode = d.night_update_mode
+                            }
+                        })
+                    }
                 }
             },
             //【历史】数据逻辑
@@ -439,7 +454,9 @@ interface Diary {
                 })
 
                 function doSomething(data: ServerDiary) {
+                    vm.requestForSetting()
                     vm.detail = transDiaryToLocal(data)
+                    setTitle(`${vm.detail.title} - 日记`)
                     vm.editor.edited = false
                 }
             },
@@ -530,6 +547,9 @@ interface Diary {
             animationDetailURL(animationId: number): string {
                 return `${webURL}/database/#/animations/detail/${animationId}/`
             },
+            commentDetailURL(animationId: number): string {
+                return `${webURL}/personal/comments/#/detail/${animationId}/`
+            },
             diaryDetailURL(animationId: number): string {
                 return `#/detail/${animationId}/`
             },
@@ -539,7 +559,7 @@ interface Diary {
                     let prefix = item.nextPublish.diff < 14 ?
                         `${item.nextPublish.diff < 7 ? '本' : '下'}${WEEKDAY_NAME[item.nextPublish.weekday]}` :
                         `${date.getFullYear() !== new Date().getFullYear() ? date.getFullYear() + '年' : ''}${date.getMonth() + 1}月${date.getDate()}日`
-                    return `${prefix}${date.getHours() < 10 ? '0' : ''}${date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}更新`
+                    return `${prefix}${date.getHours() < 10 ? '0' : ''}${(vm.ui.nightMode ? 2 : 0) + date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}更新`
                 }else return null
             },
             watchedNotice(item: Diary): string {

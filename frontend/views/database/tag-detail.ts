@@ -2,6 +2,7 @@ function createTagDetailVue(selectName: string, location: {mode: string, tab: st
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
+    const setTitle = window['setTitle']
     const serverURL = window['serverURL']
 
     const ABOUT_ANIMATION_COUNT = 9
@@ -50,6 +51,7 @@ function createTagDetailVue(selectName: string, location: {mode: string, tab: st
             },
             refresh(params?: Object) {
                 this.editMode = location.mode === 'edit'
+                setTitle(location.mode === 'edit' ? '编辑标签' : '标签')
                 if(this.tag == null || location.id != this.tag || (params && params['refresh'])) {
                     this.tag = location.id
                     this.query((ok) => {
@@ -105,6 +107,7 @@ function createTagDetailVue(selectName: string, location: {mode: string, tab: st
             },
             refreshDetail() {
                 if(backend) {
+                    setTitle(`${backend.name} - 标签`)
                     this.data.id = backend.id
                     this.data.name = backend.name
                     this.data.introduction = backend.introduction
@@ -112,6 +115,7 @@ function createTagDetailVue(selectName: string, location: {mode: string, tab: st
             },
             refreshEditor() {
                 if(backend) {
+                    setTitle(`${backend.name} - 编辑标签`)
                     this.editor.name = backend.name
                     this.editor.introduction = backend.introduction
                     this.editor.nameError = null
