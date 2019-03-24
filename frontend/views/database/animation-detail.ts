@@ -191,12 +191,10 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                         this.ui.loading = false
                         if(ok) {
                             this.detail.haveDiary = true
-                            goto(this.id)
                         }else if(s === 400) {
                             let code = d['code']
                             if(code === 'Exists') {
                                 this.detail.haveDiary = true
-                                goto(this.id)
                             }else{
                                 alert(`发生预料之外的错误。错误代码: ${code}`)
                             }

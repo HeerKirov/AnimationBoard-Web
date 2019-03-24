@@ -170,9 +170,7 @@
                 if(fileUpload) {
                     let file = fileUpload.files[0]
                     if(file != undefined) {
-                        let form = new FormData()
-                        form.append('cover', file)
-                        client.cover.profile(this.info.username, form, (ok, s, d) => {
+                        client.cover.profile(this.info.username, file, (ok, s, d) => {
                             if(ok) {
                                 if(d && 'cover' in d) {
                                     this.info.cover = d['cover'] ? `${serverURL}/static/cover/${d['cover']}` : NO_COVER_URL

@@ -23,7 +23,7 @@ let router = new Router(app, `/${config.prefix}web`);
 router.route({
         path: '',
         routers: [
-            {path: '', method: "redirect", route: 'index/'},
+            {path: '', method: "redirect", route: `/${config.prefix}web/index/`},
             {path: 'index'},
             {path: 'login'},
             {path: 'register'},
@@ -32,6 +32,11 @@ router.route({
             {path: 'personal/diaries', route: 'diary'},
             {path: 'personal/comments', route: 'comment'},
             {path: 'statistics'},
+            {path: 'admin', method: "redirect", route: `/${config.prefix}web/admin/setting/`},
+            {path: 'admin/setting', route: 'admin/setting'},
+            {path: 'admin/users', route: 'admin/user'},
+            {path: 'admin/registration-code', route: 'admin/code'},
+            {path: 'admin/system-messages', route: 'admin/message'},
         ]
     })
     .raise(404, 'not_found')

@@ -1,0 +1,31 @@
+extends layout
+
+block title
+    = `全局设置 - 管理终端 - ${title}`
+
+block content
+    div#main.ui.container
+        div.ui.segment
+            div.ui.grid
+                div.five.wide.column
+                div.seven.wide.column
+                    div.ui.form(style='margin: 20px 20px 80px 20px')
+                        div.field
+                            label 注册限制
+                            div.ui.radio.checkbox(style='margin-right: 5px')
+                                input(type='radio', name='register-mode', v-model='setting.registerMode', value='OPEN')
+                                label 开放注册
+                            div.ui.radio.checkbox(style='margin-right: 5px')
+                                input(type='radio', name='register-mode', v-model='setting.registerMode', value='ONLY_CODE')
+                                label 仅开放注册码注册
+                            div.ui.radio.checkbox(style='margin-right: 5px')
+                                input(type='radio', name='register-mode', v-model='setting.registerMode', value='CLOSE')
+                                label 关闭注册
+                        div.field
+                            div.ui.basic.green.pointing.top.label(style='margin: 15px', v-if='info === "SUCCESS"') 设置保存成功。
+                            div.ui.basic.red.pointing.top.label(style='margin: 15px', v-if='info === "ERROR"') 网络连接发生错误。
+                            div.ui.basic.red.pointing.top.label(style='margin: 15px', v-if='info !== "ERROR" && info !== "SUCCESS" && info != null') 发生错误。错误代码: {{info}}
+                    button.ui.fluid.green.icon.small.button(@click='saveSetting')
+                        i.save.icon
+                        = '保存'
+                div.five.wide.column

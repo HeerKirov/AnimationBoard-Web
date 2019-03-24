@@ -316,7 +316,7 @@
                             let s = parseFloat(score) * 2
                             return isNaN(s) ? null : s > 10 ? 10 : s < 1 ? 1 : s
                         })(this.detail.editor.score),
-                        short_comment: this.detail.editor.shortComment.trim() || null,
+                        short_comment: this.detail.editor.shortComment || null,
                         article: this.detail.editor.article || null
                     }, (ok, s, d) => {
                         if(ok) {
@@ -337,7 +337,7 @@
                             let s = parseFloat(score) * 2
                             return isNaN(s) ? null : s > 10 ? 10 : s < 1 ? 1 : s
                         })(this.detail.editor.score),
-                        short_comment: this.detail.editor.shortComment.trim() || null,
+                        short_comment: this.detail.editor.shortComment || null,
                         article: this.detail.editor.article || null
                     }, (ok, s, d) => {
                         if(ok) {

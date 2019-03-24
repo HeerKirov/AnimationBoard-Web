@@ -619,20 +619,18 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                         }
                     })
                 }
-                function generateCoverUpload(): FormData | null {
+                function generateCoverUpload(): File | null {
                     let fileUpload = $('#animation-new #file-upload').get(0)
                     if(fileUpload) {
                         let file = fileUpload.files[0]
                         if(file != undefined) {
-                            let form = new FormData()
-                            form.append('cover', file)
-                            return form
+                            return file
                         }
                     }
                     return null
                 }
-                function submitCover(formData, callback?: (ok) => void) {
-                    if(formData != null) client.cover.animation(vm.editId, formData, (ok) => {if(callback != undefined) callback(ok)})
+                function submitCover(file: File, callback?: (ok) => void) {
+                    if(file != null) client.cover.animation(vm.editId, file, (ok) => {if(callback != undefined) callback(ok)})
                     else if(callback != undefined) callback(true)
                 }
                 function submitAnimation(data) {

@@ -559,7 +559,8 @@ interface Diary {
                     let prefix = item.nextPublish.diff < 14 ?
                         `${item.nextPublish.diff < 7 ? '本' : '下'}${WEEKDAY_NAME[item.nextPublish.weekday]}` :
                         `${date.getFullYear() !== new Date().getFullYear() ? date.getFullYear() + '年' : ''}${date.getMonth() + 1}月${date.getDate()}日`
-                    return `${prefix}${date.getHours() < 10 ? '0' : ''}${(vm.ui.nightMode ? 2 : 0) + date.getHours()}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}更新`
+                    let hour = (vm.ui.nightMode ? 2 : 0) + date.getHours()
+                    return `${prefix}${hour < 10 ? '0' : ''}${hour}:${date.getMinutes() < 10 ? '0' : ''}${date.getMinutes()}更新`
                 }else return null
             },
             watchedNotice(item: Diary): string {

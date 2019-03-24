@@ -1,0 +1,18 @@
+extends ../meta
+
+block body
+    div#top-bar.ui.fixed.black.inverted.menu
+        div.ui.container
+            a.header.item(href=`${webURL}/admin/`) Animation Board 管理终端
+            a.item(href=`${webURL}/admin/setting/`) 全局设置
+            a.item(href=`${webURL}/admin/users/`) 用户管理
+            a.item(href=`${webURL}/admin/registration-code/`) 注册码
+            a.item(href=`${webURL}/admin/system-messages/`) 系统消息
+            a.right.icon.item(href=`${webURL}/`)
+                i.sitemap.icon(style='margin-right: 5px')
+                = '返回主站'
+    script(src=`${staticURL}/js/views/admin/layout.js`)
+    div(style='padding-top: 72px; padding-bottom: 72px')
+        block content
+    div(style='text-align: center') Animation Board @ Heer Kirov
+

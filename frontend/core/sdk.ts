@@ -32,8 +32,11 @@ class Client {
     private static callbackSuccess(callback: (success: boolean, status: number, data: any) => void, response: any): void {
         callback(true, response.status, response.data)
     }
-    private static callbackFailed(callback: (success: boolean, status: number, data: any) => void, error: any): void {
+    private callbackFailed(callback: (success: boolean, status: number, data: any) => void, error: any): void {
         if(error.response) {
+            if(error.response.status === 401 && error.response.data && error.response.data.detail === 'Invalid token.') {
+                this.setToken(null)
+            }
             callback(false, error.response.status, error.response.data)
         }else{
             callback(false, null, null)
@@ -44,43 +47,43 @@ class Client {
             list: (url: string) => (params, callback) =>
                 this.instance.get(this.getURL(url), {params, headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error)),
+                    .catch((error) => this.callbackFailed(callback, error)),
             create: (url: string) => (content, callback) =>
                 this.instance.post(this.getURL(url), content, {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error)),
+                    .catch((error) => this.callbackFailed(callback, error)),
             retrieve: (url: string) => (id, callback) =>
                 this.instance.get(this.getDetailURL(url, id), {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error)),
+                    .catch((error) => this.callbackFailed(callback, error)),
             update: (url: string) => (id, content, callback) =>
                 this.instance.put(this.getDetailURL(url, id), content, {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error)),
+                    .catch((error) => this.callbackFailed(callback, error)),
             partialUpdate: (url: string) => (id, content, callback) =>
                 this.instance.patch(this.getDetailURL(url, id), content, {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error)),
+                    .catch((error) => this.callbackFailed(callback, error)),
             delete: (url: string) => (id, callback) =>
                 this.instance.delete(this.getDetailURL(url, id), {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error)),
+                    .catch((error) => this.callbackFailed(callback, error)),
             get: (url: string) => (callback) =>
                 this.instance.get(this.getURL(url), {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error)),
+                    .catch((error) => this.callbackFailed(callback, error)),
             post: (url: string) => (content, callback) =>
                 this.instance.post(this.getURL(url), content, {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error)),
+                    .catch((error) => this.callbackFailed(callback, error)),
             put: (url: string) => (content, callback) =>
                 this.instance.put(this.getURL(url), content, {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error)),
+                    .catch((error) => this.callbackFailed(callback, error)),
             patch: (url) => (content, callback) =>
                 this.instance.patch(this.getURL(url), content, {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => Client.callbackFailed(callback, error))
+                    .catch((error) => this.callbackFailed(callback, error))
         }[method](url)
     }
     private endpoint(url: string, includes?: string[], extra_action?: {}): Object {
@@ -96,22 +99,26 @@ class Client {
         }
         return ret
     }
-    private generatePostFormData(url: (params) => string) {
-        return (params, formData, callback) => {
-            this.instance.post(this.getURL(url(params)), formData, {headers: this.getHeaders("multipart/form-data")})
+    private generateCoverData(url: string) {
+        return (id, file, callback) => {
+            let form = new FormData()
+            form.append('cover', file)
+            form.append('id', id)
+            this.instance.post(this.getURL(url), form, {headers: this.getHeaders("multipart/form-data")})
                 .then((response) => Client.callbackSuccess(callback, response))
-                .catch((error) => Client.callbackFailed(callback, error))
+                .catch((error) => this.callbackFailed(callback, error))
         }
     }
     private generate() {
         this['cover'] = {
-            animation: this.generatePostFormData((params) => `/cover/animation/${params}`),
-            profile: this.generatePostFormData((params) => `/cover/profile/${params}`),
+            animation: this.generateCoverData('/cover/animation'),
+            profile: this.generateCoverData('/cover/profile'),
         }
         this['user'] = {
             login: this.endpoint('/user/login', ['post']),
             logout: this.endpoint('/user/logout', ['post']),
             token: this.endpoint('/user/token', ['post']),
+            refreshToken: this.endpoint('/user/refresh-token', ['post']),
             register: this.endpoint('/user/register', ['post'])
         }
         this['profile'] = {
@@ -133,7 +140,7 @@ class Client {
         this['admin'] = {
             setting: this.endpoint('/admin/setting', ['get', 'post']),
             users: this.endpoint('/admin/users', ['list', 'retrieve', 'update', 'partialUpdate']),
-            userPasswords: this.endpoint('/admin/users-password', ['update']),
+            userPermissions: this.endpoint('/admin/users-permission', ['update']),
             registrationCode: this.endpoint('/admin/registration-code', ['create', 'list', 'retrieve']),
             systemMessages: this.endpoint('/admin/system-messages', ['list', 'create', 'retrieve'])
         }

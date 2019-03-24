@@ -10,7 +10,7 @@ block content
             a.ui.icon.item(:href='parentURL')
                 i.angle.left.icon
             div.ui.item {{detail.mode === "detail" ? "评价" : detail.mode === "edit" ? "编辑评价" : "发表评价"}}
-            a.ui.right.icon.item(href='animationDetailURL(detail.animation)')
+            a.ui.right.icon.item(:href='animationDetailURL(detail.animation)')
                 i.database.icon(style='margin-right: 5px')
                 = '数据库页面'
             a.ui.icon.item(@click='switchToEditMode', v-if='detail.mode === "detail"')

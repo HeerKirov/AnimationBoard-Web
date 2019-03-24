@@ -1,0 +1,112 @@
+extends layout
+
+block title
+    = `用户管理 - 管理终端 - ${title}`
+
+block content
+    div#main.ui.container
+        div.ui.menu
+            div.ui.item 用户管理
+            div.right.ui.floating.dropdown.icon.item.dropdown-menu
+                span {{sort.title}}
+                i(style='margin-left: 5px', :class='sort.desc ? "sort amount down icon" : "sort amount up icon"')
+                div.menu
+                    div.item(v-for='(choice, index) in sortChoices', @click='sortBy(index)') 按{{choice.title}}
+            div.menu
+                div.item
+                    div.ui.transparent.icon.input
+                        input(type='text', placeholder='搜索…', v-model='filter.search', @keydown.enter='requestForList')
+                        i.search.link.icon(@click='requestForList')
+        div.ui.segment
+            div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                div.right.aligned.column
+                    div.ui.small.basic.buttons
+                        button.ui.icon.button(@click='pageTo("first")')
+                            i.angle.double.left.icon
+                        button.ui.icon.button(@click='pageTo("prev")')
+                            i.angle.left.icon
+                        button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                        button.ui.icon.button(@click='pageTo("next")')
+                            i.angle.right.icon
+                        button.ui.icon.button(@click='pageTo("last")')
+                            i.angle.double.right.icon
+            table.ui.very.basic.table
+                thead
+                    tr
+                        th 用户名
+                        th 昵称
+                        th 身份
+                        th 上次登录
+                        th 创建途径
+                        th 创建时间
+                        th 操作
+                tbody
+                    tr(v-for='(item, index) in items')
+                        td {{item.username}}
+                        td {{item.name}}
+                        td
+                            template(v-if='item.permission')
+                                i.user.circle.icon
+                                = '{{item.permission === "STAFF" ? "管理员" : "超级管理员"}}'
+                        td {{loginRecord(item)}}
+                        td
+                            i.icon(:class='createPathIconEnums[item.createPath]')
+                            = '{{createPathEnums[item.createPath]}}'
+                        td {{fmtStdDate(item.createTime)}}
+                        td
+                            a(@click='showTokenReset(index)', href='javascript: void(0)', v-if='profile.isSuperuser')
+                                i.hockey.puck.icon
+                            a(@click='showEditor(index)', href='javascript: void(0)', v-if='item.editable')
+                                i.edit.icon
+            div.ui.two.column.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                div.left.aligned.column
+                    label 共{{pagination.count}}条记录
+                div.right.aligned.column
+                    div.ui.small.basic.buttons
+                        button.ui.icon.button(@click='pageTo("first")')
+                            i.angle.double.left.icon
+                        button.ui.icon.button(@click='pageTo("prev")')
+                            i.angle.left.icon
+                        button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                        button.ui.icon.button(@click='pageTo("next")')
+                            i.angle.right.icon
+                        button.ui.icon.button(@click='pageTo("last")')
+                            i.angle.double.right.icon
+            div.ui.active.inverted.dimmer(v-if='ui.loading')
+                div.ui.loader
+        div.ui.placeholder.segment(v-if='ui.errorInfo')
+            div.ui.icon.header
+                i.times.icon
+                = '{{ui.errorInfo}}'
+        div#editor.ui.modal
+            div.header {{editor.name}}
+            div.content
+                div.ui.two.column.grid
+                    div.column
+                        h5.ui.header 密码更改
+                        div.ui.form(style='margin: 1em')
+                            div.field
+                                input(type='password', placeholder='新密码', v-model='editor.password')
+                            div.field
+                                input(type='password', placeholder='确认密码', v-model='editor.check')
+                                div.ui.top.pointing.basic.red.label(v-if='editor.checkError') {{editor.checkError}}
+                    div.column
+                        h5.ui.header 管理员身份
+                        div.ui.toggle.checkbox(style='margin: 0.5em', v-if='profile.isSuperuser')
+                            input(type='checkbox', v-model='editor.isStaff')
+                            label 管理员
+                        div(v-else) 超级管理员可以调整管理员的配置。
+            div.actions
+                div.ui.approve.green.icon.button
+                    i.check.icon
+                    = '确认更改'
+        div#token-reset.ui.tiny.modal
+            div.header {{editor.name}}
+            div.content
+                h5.ui.header 重置Token
+                div
+                    label Token充当客户端和服务器之间的认证密钥，用于标识用户的唯一身份。
+                div
+                    label 重置Token会取消所有已经通过认证的客户端的登录授权。
+                    i 如果认为Token遭到泄露，那么应当立刻重置Token。
+                button.ui.fluid.orange.button(style='margin-top: 15px', @click='resetToken') 重置此用户的Token

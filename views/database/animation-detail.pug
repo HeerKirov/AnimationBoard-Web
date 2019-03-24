@@ -5,7 +5,7 @@ div.ui.menu
     div.ui.item 番剧
     a.ui.right.icon.item(v-if='isLogin && !ui.errorInfo', @click='gotoDiary')
         i.flag.icon(style='margin-right: 5px')
-        = '{{detail.haveDiary ? "日记" : !detail.sumQuantity ? "预定追番" : detail.publishedQuantity === detail.sumQuantity ? "补番" : "追番"}}'
+        = '{{detail.haveDiary ? "日记记录" : !detail.sumQuantity ? "预定追番" : detail.publishedQuantity === detail.sumQuantity ? "加入补番" : "加入追番"}}'
     a.ui.icon.item(v-if='isLogin && !ui.errorInfo', @click='gotoComment')
         i.keyboard.icon(style='margin-right: 5px')
         = '{{detail.haveComment ? "我的评价" : "发表评价"}}'

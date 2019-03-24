@@ -1,0 +1,90 @@
+extends layout
+
+block title
+    = `注册码 - 管理终端 - ${title}`
+
+block import
+    script(src=`${staticURL}/lib/clipboard/dist/clipboard.min.js`)
+
+block content
+    div#main.ui.container
+        div.ui.menu
+            div.ui.item 注册码
+            a.ui.right.icon.item(@click='openCreator')
+                i.plus.icon(style='margin-right: 5px')
+                = '新注册码'
+        div.ui.segment
+            div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                div.right.aligned.column
+                    div.ui.small.basic.buttons
+                        button.ui.icon.button(@click='pageTo("first")')
+                            i.angle.double.left.icon
+                        button.ui.icon.button(@click='pageTo("prev")')
+                            i.angle.left.icon
+                        button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                        button.ui.icon.button(@click='pageTo("next")')
+                            i.angle.right.icon
+                        button.ui.icon.button(@click='pageTo("last")')
+                            i.angle.double.right.icon
+            table.ui.very.basic.table
+                thead
+                    tr
+                        th CODE
+                        th 可用
+                        th 使用用户
+                        th 使用时间
+                        th 失效期限
+                        th 创建时间
+                tbody
+                    tr(v-for='(item, index) in items')
+                        td.five.wide
+                            a(v-if='!item.show', @click='item.show = true') ...
+                            label(v-else) {{item.code}}
+                        td
+                            i.check.icon(v-if='item.enable')
+                        td {{item.usedUser}}
+                        td {{fmtStdDate(item.usedTime)}}
+                        td {{fmtStdDate(item.deadline)}}
+                        td {{fmtStdDate(item.createTime)}}
+            div.ui.two.column.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                div.left.aligned.column
+                    label 共{{pagination.count}}条记录
+                div.right.aligned.column
+                    div.ui.small.basic.buttons
+                        button.ui.icon.button(@click='pageTo("first")')
+                            i.angle.double.left.icon
+                        button.ui.icon.button(@click='pageTo("prev")')
+                            i.angle.left.icon
+                        button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                        button.ui.icon.button(@click='pageTo("next")')
+                            i.angle.right.icon
+                        button.ui.icon.button(@click='pageTo("last")')
+                            i.angle.double.right.icon
+            div.ui.active.inverted.dimmer(v-if='ui.loading')
+                div.ui.loader
+        div.ui.placeholder.segment(v-if='ui.errorInfo')
+            div.ui.icon.header
+                i.times.icon
+                = '{{ui.errorInfo}}'
+        div#creator.ui.tiny.modal
+            div.header 新建注册码
+            div.content
+                div.ui.form
+                    div.field
+                        span 注册码的值将会由系统生成。
+                    div.field
+                        div.ui.segment.placeholder(style='min-height: 3em; text-align: center', v-if='!creator.errorInfo')
+                            template(v-if='creator.code == null') XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                            template(v-else) {{creator.code}}
+                        div.ui.negative.message(v-else)
+                            div.header 发生错误
+                            p {{creator.errorInfo}}
+                    div.field
+                        button.ui.fluid.green.button(@click='generateCode', v-if='creator.code == null') 生成注册码
+                        button#creator-close.ui.fluid.blue.button(@click='closeCreator', v-else, :data-clipboard-text='creator.code') 拷贝到剪贴板，并关闭对话框
+                    div.field
+                        div#deadline.ui.calendar(v-show='creator.code == null')
+                            div.ui.input
+                                input(type='text', placeholder='失效期限，经过此时间点后，注册码将失效')
+                div.ui.active.inverted.dimmer(v-if='creator.loading')
+                    div.ui.loader

@@ -1,0 +1,93 @@
+extends layout
+
+block title
+    = `系统消息 - 管理终端 - ${title}`
+
+block content
+    div#main.ui.container
+        div.ui.menu
+            div.ui.item 系统消息
+            a.ui.right.icon.item(@click='openCreator')
+                i.plus.icon(style='margin-right: 5px')
+                = '新消息'
+
+        div.ui.segment
+            div.ui.grid
+                div.seven.wide.column
+                    h5.ui.header 消息接收者
+                    select.ui.fluid.dropdown.dropdown-select(v-model='filter.owner')
+                        option(v-for='user in ui.users', :value='user.username') [{{user.username}}] {{user.name}}
+                div.six.wide.column
+                    h5.ui.header 回执筛选
+                    select.ui.fluid.dropdown.dropdown-select(v-model='filter.read')
+                        option(value='NONE') 不限制
+                        option(value='True') 已读
+                        option(value='False') 未读
+                div.right.three.wide.column
+                    h5.ui.header(style='visibility: hidden') submit
+                    button.ui.fluid.icon.basic.button(@click='requestForList')
+                        i.search.icon
+                        = '查询已发送消息'
+            div.ui.divider
+            div.ui.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                div.right.aligned.column
+                    div.ui.small.basic.buttons
+                        button.ui.icon.button(@click='pageTo("first")')
+                            i.angle.double.left.icon
+                        button.ui.icon.button(@click='pageTo("prev")')
+                            i.angle.left.icon
+                        button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                        button.ui.icon.button(@click='pageTo("next")')
+                            i.angle.right.icon
+                        button.ui.icon.button(@click='pageTo("last")')
+                            i.angle.double.right.icon
+            table.ui.very.basic.table
+                thead
+                    tr
+                        th.nine.wide 消息内容
+                        th.three.wide 已读
+                        th.four.wide 发送时间
+                tbody
+                    tr(v-for='item in items')
+                        td {{item.content}}
+                        td
+                            i.check.icon(v-if='item.read')
+                        td {{fmtStdDate(item.createTime)}}
+            div.ui.two.column.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')
+                div.left.aligned.column
+                    label 共{{pagination.count}}条记录
+                div.right.aligned.column
+                    div.ui.small.basic.buttons
+                        button.ui.icon.button(@click='pageTo("first")')
+                            i.angle.double.left.icon
+                        button.ui.icon.button(@click='pageTo("prev")')
+                            i.angle.left.icon
+                        button.ui.icon.button(v-for='i in pagination.navigator', @click='pageTo(i)', :class='{active: i === pagination.pageIndex}') {{i}}
+                        button.ui.icon.button(@click='pageTo("next")')
+                            i.angle.right.icon
+                        button.ui.icon.button(@click='pageTo("last")')
+                            i.angle.double.right.icon
+            div.ui.active.inverted.dimmer(v-if='ui.loading')
+                div.ui.loader
+        div.ui.placeholder.segment(v-if='ui.errorInfo')
+            div.ui.icon.header
+                i.times.icon
+                = '{{ui.errorInfo}}'
+        div#creator.ui.small.modal
+            div.header 新消息
+            div.content
+                div.ui.form
+                    div.field
+                        label 消息接收者
+                        select#owner-picker.ui.fluid.dropdown.dropdown-select(v-model='creator.owner')
+                            option(v-for='user in ui.users', :value='user.username') [{{user.username}}] {{user.name}}
+                    div.field
+                        label 消息内容
+                        textarea(v-model='creator.content')
+                    div.ui.negative.message(v-if='creator.errorInfo')
+                        div.header 发生错误
+                        p {{creator.errorInfo}}
+                    div.field
+                        button.ui.fluid.green.button(@click='create') 发送消息
+                div.ui.active.inverted.dimmer(v-if='creator.loading')
+                    div.ui.loader

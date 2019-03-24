@@ -5,28 +5,53 @@ block title
 block import
 
 block content
+    style.
+        .dis-selectable {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
     div#main.ui.container
         div.ui.grid
             div.three.wide.column
-                div.ui.segment
+                div.ui.segment(style='min-height: 325px', v-if='profile.isAuthenticated')
                     h5.ui.header 追番
+                    div.ui.list
+                        div.item(v-for='item in diary.updateList')
+                            div.right.floated.content
+                                i NEXT {{item.watched + 1}}
+                            div.content
+                                a(:href='diaryDetailURL(item.animationId)', style='font-size: 12px') {{item.title}}
                     div.ui.divider
                     h5.ui.header(style='margin-top: 0') 补番
+                    div.ui.list
+                        div.item(v-for='item in diary.attachList')
+                            div.right.floated.content
+                                i {{item.watched}} / {{item.sum}}
+                            div.content
+                                a(:href='diaryDetailURL(item.animationId)', style='font-size: 12px') {{item.title}}
+                div.ui.segment(style='min-heiht: 250px', v-else)
+                    h5 本季新番
+                    div.ui.list
+                        div.item(v-for='item in diary.animationList')
+                            div.content
+                                a(:href='animationDetailURL(item.animationId)', style='font-size: 12px') {{item.title}}
             div.ten.wide.column
-                div.ui.segment
+                div.ui.segment(style='min-height: 325px')
                     h4.ui.horizontal.divider.header {{season}}
+                    button.ui.right.attached.basic.tiny.icon.button(style='position: absolute; left: 0; top: 3.75em', @click='navigateWeekdayTable("prev")')
+                        i.left.angle.icon
                     div.ui.grid
-                        div.five.column.row
-                            div.column
-                                div.ui.tag.label.blue MON
-                            div.column
-                                div.ui.tag.label.blue TUE
-                            div.column
-                                div.ui.tag.label.blue WED
-                            div.column
-                                div.ui.tag.label.blue THU
-                            div.column
-                                div.ui.tag.label.blue FRI
+                        div.five.column.row(style='margin-left: 30px; margin-right: 5px; margin-top: 20px; margin-bottom: 20px; padding: 0')
+                            div.column(style='padding: 0', v-for='weekday in getWeekdayTableNumber(table.middleWeekday)')
+                                div.ui.tag.label.dis-selectable(:class='weekday === table.todayWeekday ? "olive" : "blue"') {{weekdayName[weekday]}}
+                                div(v-for='item in table.table[weekday]')
+                                    div(style='color: #DADADA; font-size: 11px') {{fmtStdTime(item.nextDate)}}
+                                    div
+                                        a(style='font-size: 12px', :href='tableDetailURL(item.animationId)') {{item.title}}
+                                    img(:src='item.cover', style='width: 30%')
+                    button.ui.left.attached.basic.tiny.icon.button(style='position: absolute; right: 0; top: 3.75em', @click='navigateWeekdayTable("next")')
+                        i.right.angle.icon
             div.three.wide.column
                 //登录前的提示框
                 div.ui.segment(style='text-align: center', v-if='profile.isAuthenticated == false')
@@ -39,7 +64,7 @@ block content
                     div.image
                         img(:src='profile.cover')
                     div.content
-                        div.header {{profile.name}}
+                        div.header(style='text-align: center') {{profile.name}}
                     div.extra.content
                         div.ui.grid(style='text-align: center')
                             div.eight.wide.column
@@ -50,10 +75,3 @@ block content
                                 a(href=`${webURL}/personal/diaries/#/history/`) 足迹
                             div.eight.wide.column
                                 a(href=`${webURL}/personal/comments/#/rating/`) 评分表
-    //番剧更新周历：展示一周内每天更新的番剧
-    //存货和更新提示：提示还没有看的追番的列表
-    //补番提示：提示所有已完结的番的补番进度
-    //未登录时有登录提示，登录后有肖像框和部分快捷按钮
-    //时间提示：如【2019·春季】，可以放在番剧周历上面
-
-    //table创想：纵向排列，按照时间轴定位y坐标，删除无内容的时间轴。使用time|title|cover组合标记点。
