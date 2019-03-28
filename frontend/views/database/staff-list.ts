@@ -1,4 +1,5 @@
 function createStaffListVue(selectName: string, location: {mode: string, tab: string, id: number | string}) {
+    const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
     const setTitle = window['setTitle']
@@ -28,7 +29,7 @@ function createStaffListVue(selectName: string, location: {mode: string, tab: st
                 desc: true
             },
             pagination: {
-                pageIndex: null,
+                pageIndex: 1,
                 pageLimit: PAGE_LIMIT_IN_TABLE,
                 count: 0,
                 maxPageIndex: 1,
@@ -162,6 +163,10 @@ function createStaffListVue(selectName: string, location: {mode: string, tab: st
             },
         }
     })
+
+    $(`${selectName} .ui.dropdown.dropdown-menu`).dropdown({action: 'hide'})
+    $(`${selectName} .ui.dropdown.dropdown-select`).dropdown({fullTextSearch: true})
+    $(`${selectName} .accordion`).accordion()
 
     return vm
 }

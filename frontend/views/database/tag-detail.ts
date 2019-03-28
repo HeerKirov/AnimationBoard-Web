@@ -157,5 +157,8 @@ function createTagDetailVue(selectName: string, location: {mode: string, tab: st
             }
         }
     })
+    $(`${selectName} .ui.dropdown.dropdown-menu`).dropdown({action: 'hide'})
+    $(`${selectName} .ui.dropdown.dropdown-select`).dropdown({fullTextSearch: true})
+    $(`${selectName} .accordion`).accordion()
     return vm
 }

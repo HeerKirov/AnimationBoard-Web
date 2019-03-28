@@ -1,5 +1,0 @@
-class Arrays {
-
-}
-
-export {Arrays}

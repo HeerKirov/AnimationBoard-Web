@@ -1,13 +1,13 @@
-function createStaffNewVue(selectName: string, location: {mode: string, tab: string, id: number | string}) {
+function createStaffNewVue(selectName: string, location: {mode: string, tab: string, id: number | string, params: Object}) {
     const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
     const setTitle = window['setTitle']
-    const serverURL = window['serverURL']
+
     function newItem() {
         return {
-            name: '', originName: '', isOrganization: null,
-            nameError: null, originNameError: null, isOrgError: null
+            name: '', originName: '', remark: '', isOrganization: null,
+            nameError: null, originNameError: null, remarkError: null, isOrgError: null
         }
     }
     let vm = new Vue({
@@ -16,16 +16,15 @@ function createStaffNewVue(selectName: string, location: {mode: string, tab: str
             items: [],
             ui: {
                 errorInfo: null,
-                loading: false
+                loading: false,
+                from: null
             }
         },
-        computed: {
-
-        },
         methods: {
-            load() {
+            load(params?: Object) {
                 setTitle('新建STAFF')
                 this.ui.loading = true
+                this.ui.from = (params && params['from']) ? params['from'] : null
                 if(window['vms']['top-bar'].profile.is_staff != null) doSomething(window['vms']['top-bar'].profile.is_staff)
                 else client.profile.info.get((ok, s, d) => doSomething(ok && d && d['is_staff']))
                 function doSomething(isStaff: boolean) {
@@ -52,6 +51,7 @@ function createStaffNewVue(selectName: string, location: {mode: string, tab: str
                     if(item.name == null || !item.name.trim()) throwErr('nameError', '名字不能为空。')
                     else if(item.name.length > 64) throwErr('nameError', '名字的长度不能超过64。')
                     if(item.originName != null && item.originName.length > 64) throwErr('originNameError', '原名的长度不能超过64。')
+                    if(item.remark != null && item.remark.length > 64) throwErr('remarkError', '原名的长度不能超过64。')
                     if(item.isOrganization == null) throwErr('isOrgError', '必须选择类型。')
                 }
                 return ok
@@ -59,7 +59,10 @@ function createStaffNewVue(selectName: string, location: {mode: string, tab: str
             generateData(): {name: string, originName: string, isOrganization: boolean | null}[] {
                 let ret = []
                 for(let item of this.items) {
-                    ret[ret.length] = {name: item.name, origin_name: item.originName || null, is_organization: item.isOrganization}
+                    ret[ret.length] = {
+                        name: item.name, origin_name: item.originName || null,
+                        remark: item.remark || null, is_organization: item.isOrganization
+                    }
                 }
                 return ret
             },
@@ -87,7 +90,7 @@ function createStaffNewVue(selectName: string, location: {mode: string, tab: str
                         vm.ui.loading = false
                         if(allSuccess) {
                             vm.clear()
-                            window.location.hash = '#/staffs/'
+                            window.location.hash = vm.ui.from || '#/staffs/'
                         }
                     }
                 }
@@ -107,5 +110,9 @@ function createStaffNewVue(selectName: string, location: {mode: string, tab: str
             this.clear()
         }
     })
+
+    $(`${selectName} .ui.dropdown.dropdown-menu`).dropdown({action: 'hide'})
+    $(`${selectName} .ui.dropdown.dropdown-select`).dropdown({fullTextSearch: true})
+    $(`${selectName} .accordion`).accordion()
     return vm
 }

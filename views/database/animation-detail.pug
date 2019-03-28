@@ -3,11 +3,11 @@ div.ui.menu
     a.ui.icon.item(href='#/animations/')
         i.angle.left.icon
     div.ui.item 番剧
-    a.ui.right.icon.item(v-if='isLogin && !ui.errorInfo', @click='gotoDiary')
-        i.flag.icon(style='margin-right: 5px')
-        = '{{detail.haveDiary ? "日记记录" : !detail.sumQuantity ? "预定追番" : detail.publishedQuantity === detail.sumQuantity ? "加入补番" : "加入追番"}}'
+    a.ui.right.icon.item(v-if='isLogin && !ui.errorInfo', @click='gotoDiary("open")')
+        i.flag.icon(style='margin-right: 5px', :class='{outline: !detail.haveDiary}')
+        = '{{detail.haveDiary ? "我的日记" : "加入日记"}}'
     a.ui.icon.item(v-if='isLogin && !ui.errorInfo', @click='gotoComment')
-        i.keyboard.icon(style='margin-right: 5px')
+        i.keyboard.icon(style='margin-right: 5px', :class='{outline: !detail.haveComment}')
         = '{{detail.haveComment ? "我的评价" : "发表评价"}}'
     a.ui.icon.item(v-if='isStaff && !ui.errorInfo', :href='animationEditURL(this.id)')
         i.edit.icon(style='margin-right: 5px')
@@ -36,7 +36,7 @@ div.ui.segment(v-show='!ui.errorInfo')
                         div.four.wide.field(style='padding: 0', v-if='detail.cover')
                             img(:src='detail.cover', style='width: 100%')
                 div.field
-                    span {{detail.introduction}}
+                    span(v-html='fmtIntroduction(detail.introduction)')
                 div.field
                     div.fields
                         div.field(:class='detail.relationList.length ? "twelve wide" : "sixteen wide"')
@@ -98,3 +98,48 @@ div.ui.placeholder.segment(v-if='ui.errorInfo')
     div.ui.icon.header
         i.times.icon
         = '{{ui.errorInfo}}'
+div#diary-modal.ui.modal.tiny
+    div.header 加入日记
+    div.content
+        div.ui.segment.placeholder
+            div.ui.very.relaxed.stackable.grid(:class='leastOnePublished ? "two column" : "one column"')
+                div.middle.aligned.column
+                    h2.ui.center.aligned.icon.header
+                        i.bookmark.icon
+                        div.sub.header(style='margin-bottom: 10px') 将此番剧加入日记本
+                        button.ui.fluid.green.button(@click='gotoDiary("subscribe")') 订阅
+                div.middle.aligned.column(v-if='leastOnePublished')
+                    h2.ui.center.aligned.icon.header
+                        i.pencil.icon
+                        div.sub.header(style='margin-bottom: 10px') 早就看过了？
+                        button.ui.fluid.button(@click='gotoDiary("record")') 补齐记录
+            div.ui.vertical.divider(v-if='leastOnePublished') 或
+        div.ui.inverted.dimmer(:class='{active: record.loading}')
+            div.ui.loader
+div#diary-record-modal.ui.modal.tiny
+    div.header 补齐记录
+    div.content
+        div.ui.segment.placeholder
+            div.ui.form
+                div.field.required
+                    label 已看完
+                    div.ui.right.labeled.input
+                        input(type='number', placeholder='已看完的话数', min=0, :max='detail.publishedQuantity', v-model='record.watchedQuantity')
+                        div.ui.label / {{detail.publishedQuantity}}
+                    div.ui.top.pointing.basic.red.label(v-if='record.watchedQuantityError') {{record.watchedQuantityError}}
+                div.field
+                    label 订阅时间
+                    div#subscription-time-picker.ui.calendar
+                        div.ui.input.left.icon
+                            i.calendar.icon
+                            input(type='text', placeholder='订阅此番剧的时间')
+                div.field.required(v-show='record.watchedQuantity == detail.sumQuantity')
+                    label 看完时间
+                    div#finish-time-picker.ui.calendar
+                        div.ui.input.left.icon
+                            i.calendar.icon
+                            input(type='text', placeholder='看完此番剧的时间')
+                    div.ui.top.pointing.basic.red.label(v-if='record.finishTimeError') {{record.finishTimeError}}
+                button.ui.fluid.green.button(@click='gotoDiary("submit-record")') 提交并保存
+        div.ui.inverted.dimmer(:class='{active: record.loading}')
+            div.ui.loader

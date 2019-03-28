@@ -9,7 +9,7 @@ div.ui.menu
         div.item
             div.ui.transparent.icon.input
                 input(type='text', placeholder='搜索…', v-model='filter.searchText', @keydown.enter='query')
-                i.search.link.icon
+                i.search.link.icon(@click='query')
     a.ui.icon.item(href=`#/tags/new/`, v-if='isStaff')
         i.plus.icon
 div.ui.segment(v-if='!panel.errorInfo')

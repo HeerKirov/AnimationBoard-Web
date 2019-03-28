@@ -1,20 +1,19 @@
 (function () {
     //全局资源区
     const $ = window['$']
-    const Vue = window['Vue']
-    const client = window['client']
     const webURL = window['webURL']
-    //DATABASE vue 创建函数
+    const staticURL = window['staticURL']
+    //DATABASE vue 创建函数的名字
     const createVue = {
-        'animation-list': window['createAnimationListVue'],
-        'animation-new': window['createAnimationNewVue'],
-        'animation-detail': window['createAnimationDetailVue'],
-        'tag-list': window['createTagListVue'],
-        'tag-new': window['createTagNewVue'],
-        'tag-detail': window['createTagDetailVue'],
-        'staff-list': window['createStaffListVue'],
-        'staff-new': window['createStaffNewVue'],
-        'staff-detail': window['createStaffDetailVue'],
+        'animation-list': 'createAnimationListVue',
+        'animation-new': 'createAnimationNewVue',
+        'animation-detail': 'createAnimationDetailVue',
+        'tag-list': 'createTagListVue',
+        'tag-new': 'createTagNewVue',
+        'tag-detail': 'createTagDetailVue',
+        'staff-list': 'createStaffListVue',
+        'staff-new': 'createStaffNewVue',
+        'staff-detail': 'createStaffDetailVue'
     }
     /**
      * 从hash中解析当前处于的面板状态。
@@ -128,6 +127,30 @@
         }
     }
     /**
+     * 获取一个vue模型。这个行为是异步的，因为有可能动态加载新的vue和html组件。
+     * @param viewName
+     * @param callback
+     */
+    function getVue(viewName: string, callback: (vue) => void) {
+        if(viewName in vms) {
+            callback(vms[viewName])
+        }else if(window[createVue[viewName]]) {
+            let vm = window[createVue[viewName]](`#${viewName}`, location)
+            vms[viewName] = vm
+            window['vms'][viewName] = vm
+            callback(vm)
+        }else{
+            $(`#main #${viewName}`).load(`${webURL}/database/html/${viewName}/`, () => {
+                $.getScript(`${staticURL}/js/views/database/${viewName}.js`, () => {
+                    let vm = window[createVue[viewName]](`#${viewName}`, location)
+                    vms[viewName] = vm
+                    window['vms'][viewName] = vm
+                    callback(vm)
+                })
+            })
+        }
+    }
+    /**
      * hash发生更改时触发事件。
      */
     function hashChanged() {
@@ -136,30 +159,35 @@
             let oldViewName = getViewName(location.tab, location.mode)
             let newViewName = getViewName(tab, mode)
             if(oldViewName != newViewName) {
-                if(oldViewName && oldViewName in vms) {
-                    let leave = vms[oldViewName].leave
-                    if(typeof leave === 'function') leave()
+                if(oldViewName) {
+                    getVue(oldViewName, (vue) => {
+                        if(typeof vue.leave === 'function') vue.leave()
+                    })
                 }
                 location.mode = mode
                 location.tab = tab
                 location.id = id
                 location.params = params
-                if(newViewName && newViewName in vms) {
-                    let load = vms[newViewName].load
-                    if(typeof load === 'function') load(tempPrivateParams)
+                if(newViewName) {
+                    getVue(newViewName, (vue) => {
+                        if(typeof vue.load === 'function') vue.load(tempPrivateParams)
+                        tempPrivateParams = null
+                        tabView()
+                    })
                 }
             }else{
                 location.mode = mode
                 location.tab = tab
                 location.id = id
                 location.params = params
-                if(newViewName && newViewName in vms) {
-                    let refresh = vms[newViewName].refresh
-                    if(typeof refresh === 'function') refresh(tempPrivateParams)
+                if(newViewName) {
+                    getVue(newViewName, (vue) => {
+                        if(typeof vue.refresh === 'function') vue.refresh(tempPrivateParams)
+                        tempPrivateParams = null
+                        tabView()
+                    })
                 }
             }
-            tempPrivateParams = null
-            tabView()
         }
     }
     let tempPrivateParams = null
@@ -176,21 +204,7 @@
     }
     let vms = {}
 
-    //初始化逻辑
-    for(let name in createVue) {
-        let func = createVue[name]
-        if(typeof func === 'function') {
-            let vue = func(`#${name}`, location)
-            vms[name] = vue
-            window['vms'][name] = vue
-        }
-    }
     hashChanged()
     window.onhashchange = hashChanged
-
-    //semantic ui初始化区
-    $('#main .ui.dropdown.dropdown-menu').dropdown({action: 'hide'})
-    $('#main .ui.dropdown.dropdown-select').dropdown({fullTextSearch: true})
-    $('#main .accordion').accordion()
 
 })()

@@ -30,6 +30,15 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
         {value: 'R18G', title: 'R18G'},
     ]
 
+    function fmtUTCDate(date: Date): string | null {
+        if(date != null) {
+            function fmt(n) {return n < 10 ? `0${n}` : n}
+            let d = new Date(date)
+            return `${d.getUTCFullYear()}-${fmt(d.getUTCMonth() + 1)}-${fmt(d.getUTCDate())}T${fmt(d.getUTCHours())}:${fmt(d.getUTCMinutes())}:${fmt(d.getUTCSeconds())}Z`
+        }
+        return null
+    }
+
     let backend: any = {}
 
     let vm = new Vue({
@@ -69,6 +78,16 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                 loading: false,
                 errorInfo: null,
                 durationSwitch: false,      //切换publish type | duration的标记变量
+            },
+            record: {
+                watchedQuantity: null,
+                subscriptionTime: null,
+                finishTime: null,
+
+                watchedQuantityError: null,
+                finishTimeError: null,
+
+                loading: false
             }
         },
         computed: {
@@ -134,6 +153,9 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
             isLogin() {
                 return window['vms']['top-bar'].profile.is_authenticated
             },
+            leastOnePublished() {
+                return this.detail.sumQuantity != null && this.detail.publishedQuantity != null && this.detail.publishedQuantity > 0
+            }
         },
         watch: {
         },
@@ -142,12 +164,16 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                 this.refresh(params)
             },
             refresh(params?: Object) {
+                $('#diary-modal').modal('hide')
                 if(location.id != null && (this.id != location.id || (params && params['refresh']))) {
                     this.id = location.id
                     if(this.id != null) this.query()
                 }
             },
-            leave() {},
+            leave() {
+                $('#diary-modal').modal('hide')
+                $('#diary-record-modal').modal('hide')
+            },
             //数据逻辑
             query() {
                 this.ui.errorInfo = null
@@ -182,33 +208,89 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
             gotoComment() {
                 window.location.href = `${webURL}/personal/comments/#/detail/${this.id}/`
             },
-            gotoDiary() {
-                if(this.detail.haveDiary) {
-                    goto(this.id)
+            gotoDiary(action: 'open' | 'subscribe' | 'record' | 'submit-record') {
+                if(action === 'open') {
+                    if(this.detail.haveDiary) {
+                        window.location.href = `${webURL}/personal/diaries/#/detail/${this.id}/`
+                    }else{
+                        $('#diary-modal').modal('show')
+                    }
+                }else if(action === 'subscribe') {
+                    create({animation: this.id}, (ok) => {
+                        if(ok) $('#diary-modal').modal('hide')
+                    })
+                }else if(action === 'record') {
+                    this.record.watchedQuantityError = null
+                    this.record.finishTimeError = null
+                    this.record.watchedQuantity = this.detail.publishedQuantity
+                    this.record.subscriptionTime = null
+                    this.record.finishTime = null
+                    $('#diary-record-modal #subscription-time-picker').calendar('clear')
+                    $('#diary-record-modal #finish-time-picker').calendar('clear')
+                    $('#diary-record-modal').modal('show')
                 }else{
-                    this.ui.loading = true
-                    client.personal.diaries.create({animation: this.id, watched_quantity: 0}, (ok, s, d) => {
-                        this.ui.loading = false
+                    this.record.watchedQuantityError = null
+                    this.record.finishTimeError = null
+                    let ok = true
+                    if(this.record.watchedQuantity == null) {
+                        this.record.watchedQuantityError = '已观看数量不能是空值。'
+                        ok = false
+                    }else{
+                        let value = parseInt(this.record.watchedQuantity)
+                        if(isNaN(value)) {
+                            this.record.watchedQuantityError = '不是一个合法的数字。'
+                            ok = false
+                        }else if(value < 0 || value > this.detail.sumQuantity) {
+                            this.record.watchedQuantityError = '超出合理的数字范围。'
+                            ok = false
+                        }else if(value == this.detail.sumQuantity) {
+                            if(this.record.finishTime == null) {
+                                this.record.finishTimeError = '看完时间是必须填写的。'
+                                ok = false
+                            }else if(this.record.subscriptionTime != null && this.record.finishTime < this.record.subscriptionTime) {
+                                this.record.finishTimeError = '看完时间不能早于订阅时间。'
+                                ok = false
+                            }
+                        }
+                    }
+                    if(ok) {
+                        create({
+                            animation: this.id,
+                            supplement: true,
+                            watched_quantity: parseInt(this.record.watchedQuantity),
+                            subscription_time: fmtUTCDate(this.record.subscriptionTime),
+                            finish_time: fmtUTCDate(this.record.finishTime)
+                        }, (ok) => {
+                            if(ok) $('#diary-record-modal').modal('hide')
+                        })
+                    }
+                }
+                function create(params: Object, callback: (ok) => void) {
+                    vm.record.loading = true
+                    client.personal.diaries.create(params, (ok, s, d) => {
+                        vm.record.loading = false
                         if(ok) {
-                            this.detail.haveDiary = true
+                            vm.detail.haveDiary = true
+                            callback(true)
                         }else if(s === 400) {
                             let code = d['code']
                             if(code === 'Exists') {
-                                this.detail.haveDiary = true
+                                vm.detail.haveDiary = true
+                                callback(true)
                             }else{
                                 alert(`发生预料之外的错误。错误代码: ${code}`)
+                                callback(false)
                             }
                         }else if(s === 401) {
-                            this.ui.errorInfo = '请先登录。'
+                            vm.ui.errorInfo = '请先登录。'
+                            callback(false)
                         }else{
                             alert(s === 403 ? '没有请求的权限。' :
                                     s === 404 ? '找不到资源。' :
                                     s === 500 ? '内部服务器发生预料之外的错误。' : '网络连接发生错误。')
+                            callback(false)
                         }
                     })
-                }
-                function goto(id: number) {
-                    window.location.href = `${webURL}/personal/diaries/#/detail/${id}/`
                 }
             },
             //detail
@@ -353,6 +435,62 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                 }else{
                     return title2
                 }
+            },
+            fmtIntroduction(s: string): string {
+                if(s) {
+                    return s.replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/\n/g, '<br/>')
+                }else{
+                    return null
+                }
+            }
+        }
+    })
+    $(`${selectName} .ui.dropdown.dropdown-menu`).dropdown({action: 'hide'})
+    $(`${selectName} .ui.dropdown.dropdown-select`).dropdown({fullTextSearch: true})
+    $(`${selectName} .accordion`).accordion()
+    $(`${selectName} #diary-modal`).modal({duration: 150, centered: false})
+    $(`${selectName} #diary-record-modal`).modal({duration: 100, centered: false})
+    $('#diary-record-modal #subscription-time-picker').calendar({
+        type: 'date',
+        formatter: {
+            date(date) {
+                if (!date) return null
+                let year  = date.getFullYear()
+                let month = date.getMonth() + 1
+                let day = date.getDate()
+                return `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`
+            }
+        },
+        onChange(date: Date, text: string, mode: string) {
+            if(date) {
+                date = new Date(date)
+                date.setHours(0, 0, 0, 0)
+                vm.record.subscriptionTime = date
+            }else{
+                vm.record.subscriptionTime = null
+            }
+        }
+    })
+    $('#diary-record-modal #finish-time-picker').calendar({
+        type: 'date',
+        formatter: {
+            date(date) {
+                if (!date) return null
+                let year  = date.getFullYear()
+                let month = date.getMonth() + 1
+                let day = date.getDate()
+                return `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`
+            }
+        },
+        onChange(date: Date, text: string, mode: string) {
+            if(date) {
+                date = new Date(date)
+                date.setHours(0, 0, 0, 0)
+                vm.record.finishTime = date
+            }else{
+                vm.record.finishTime = null
             }
         }
     })

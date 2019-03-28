@@ -1,5 +1,5 @@
 div.ui.menu
-    a.ui.icon.item(href='#/staffs/')
+    a.ui.icon.item(:href='ui.from || "#/staffs/"')
         i.angle.left.icon
     div.ui.item 新建STAFF
     a.ui.right.icon.item(v-if='!ui.errorInfo', @click='submit')
@@ -15,10 +15,14 @@ div.ui.segment(v-if='!ui.errorInfo')
                         label 名字
                         input(type='text', placeholder='组织名称或人员姓名', v-model='item.name')
                         div.ui.pointing.red.basic.label(v-if='item.nameError') {{item.nameError}}
-                    div.wide.field(:class='item.length > 1 ? "seven" : "eight"')
+                    div.four.wide.field
                         label 原名
                         input(type='text', placeholder='原语言中的名字', v-model='item.originName')
                         div.ui.pointing.red.basic.label(v-if='item.originNameError') {{item.originNameError}}
+                    div.wide.field(:class='item.length > 1 ? "three" : "four"')
+                        label 备注
+                        input(type='text', placeholder='非正式的备注', v-model='item.remark')
+                        div.ui.pointing.red.basic.label(v-if='item.remarkError') {{item.remarkError}}
                     div.three.wide.field
                         label 类型
                         div.ui.buttons

@@ -67,7 +67,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                 desc: true
             },
             pagination: {
-                pageIndex: null,   //当前页码
+                pageIndex: 1,   //当前页码
                 pageLimit: PAGE_LIMIT_IN_TABLE,     //每页的最大条目数量
                 count: 0,          //当前项目在数据库中的总数量
                 maxPageIndex: 1,   //计算得到的最大页码数
@@ -340,7 +340,10 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
             }
         }
     })
-    $('#animation-list #filter-tags-picker').dropdown({
+    $(`${selectName} .ui.dropdown.dropdown-menu`).dropdown({action: 'hide'})
+    $(`${selectName} .ui.dropdown.dropdown-select`).dropdown({fullTextSearch: true})
+    $(`${selectName} .accordion`).accordion()
+    $(`${selectName} #filter-tags-picker`).dropdown({
         fullTextSearch: true,
         allowAdditions: true
     })

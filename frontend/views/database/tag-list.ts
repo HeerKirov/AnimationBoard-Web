@@ -1,4 +1,5 @@
 function createTagListVue(selectName: string, location: {mode: string, tab: string, id: number | string}) {
+    const $ = window['$']
     const Vue = window['Vue']
     const client = window['client']
     const setTitle = window['setTitle']
@@ -55,6 +56,9 @@ function createTagListVue(selectName: string, location: {mode: string, tab: stri
             },
         }
     })
+    $(`${selectName} .ui.dropdown.dropdown-menu`).dropdown({action: 'hide'})
+    $(`${selectName} .ui.dropdown.dropdown-select`).dropdown({fullTextSearch: true})
+    $(`${selectName} .accordion`).accordion()
 
     return vm
 }

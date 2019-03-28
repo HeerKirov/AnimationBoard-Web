@@ -122,5 +122,8 @@ function createTagNewVue(selectName: string, location: {mode: string, tab: strin
             this.clear()
         }
     })
+    $(`${selectName} .ui.dropdown.dropdown-menu`).dropdown({action: 'hide'})
+    $(`${selectName} .ui.dropdown.dropdown-select`).dropdown({fullTextSearch: true})
+    $(`${selectName} .accordion`).accordion()
     return vm
 }

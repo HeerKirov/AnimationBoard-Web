@@ -3,11 +3,11 @@ interface ServerDiary {
     title: string,
     cover: string | null,
     animation: number,
-    watched_record: string[],
     watched_quantity: number,
     sum_quantity: number,
     published_quantity: number,
     publish_plan: string[],
+    subscription_time: string | null,
     finish_time: string | null,
     status: "READY" | "WATCHING" | "COMPLETE" | "GIVEUP",
     watch_many_times: boolean,
@@ -19,11 +19,11 @@ interface Diary {
     title: string,
     cover: string,
     animation: number,
-    watchedRecord: Date[],
     watchedQuantity: number,
     sumQuantity: number,
     publishedQuantity: number,
     publishPlan: Date[],
+    subscriptionTime: Date | null,
     finishTime: Date | null,
     status: "READY" | "WATCHING" | "COMPLETE" | "GIVEUP",
     watchManyTimes: boolean,
@@ -56,9 +56,10 @@ interface Diary {
         {value: 'create',   title: '创建顺序'},        //按照createTime
     ]
     const FILTER_CHOICE = [
-        {value: 'doing',    title: '全部订阅'},       //状态为watching，
-        {value: 'updating', title: '在更新中'},       //状态为watching，publish plan不为空
+        {value: 'doing',    title: '活跃订阅'},       //状态为watching，且没有看完全部存货，或还有放送计划。
+        {value: 'updating', title: '在更新'},       //状态为watching，publish plan不为空
         {value: 'stock',    title: '有存货'},         //状态为watching，published - watch > 0，还有没有看的
+        {value: 'all',    title: '全部订阅'},       //状态为watching或complete
         {value: 'ready',    title: '未上线'},         //状态为ready
         {value: 'giveup',   title: '已放弃'},         //状态为giveup
     ]
@@ -70,7 +71,10 @@ interface Diary {
     }
 
     const FILTER_FUNCTION = {
-        doing(item: ServerDiary): boolean {return item.status === 'WATCHING' || item.status === 'COMPLETE'},
+        doing(item: ServerDiary): boolean {
+            return (item.status === 'WATCHING' || item.status === 'COMPLETE') && (item.watched_quantity < item.published_quantity || item.publish_plan.length > 0)
+        },
+        all(item: ServerDiary): boolean {return item.status === 'WATCHING' || item.status === 'COMPLETE'},
         updating(item: ServerDiary): boolean {return item.status === 'WATCHING' && item.publish_plan.length > 0},
         stock(item: ServerDiary): boolean {return item.status === 'WATCHING' && item.published_quantity > item.watched_quantity},
         ready(item: ServerDiary): boolean {return item.status === 'READY'},
@@ -126,11 +130,11 @@ interface Diary {
             title: origin.title,
             cover: origin.cover ? `${serverURL}/static/cover/${origin.cover}` : NO_COVER_URL,
             animation: origin.animation,
-            watchedRecord: mapArray(origin.watched_record, (r) => new Date(r)),
             watchedQuantity: origin.watched_quantity,
             sumQuantity: origin.sum_quantity || 0,
             publishedQuantity: origin.published_quantity || 0,
             publishPlan: mapArray(origin.publish_plan, (r) => new Date(r)),
+            subscriptionTime: origin.subscription_time ? new Date(origin.subscription_time) : null,
             finishTime: origin.finish_time ? new Date(origin.finish_time) : null,
             status: origin.status,
             watchManyTimes: origin.watch_many_times,
@@ -219,8 +223,8 @@ interface Diary {
                 cover: null,
                 animation: null,
 
-                watchedRecord: [],
                 watchedQuantity: 0,
+                subscriptionTime: null,
                 finishTime: null,
                 status: "READY",
 

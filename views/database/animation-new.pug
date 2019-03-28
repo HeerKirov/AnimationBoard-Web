@@ -194,7 +194,7 @@ div.ui.segment(v-if='!ui.errorInfo')
                                             a.ui.tag.label(v-for='staff in ui.staffEditor.showResult', @click='addExistStaff(staff)') {{staff.name}}
                                     div.ui.grid
                                         div.right.aligned.column
-                                            a(href='#/staffs/new/') 创建新的STAFF条目
+                                            a(@click='gotoStaffNew', href='javascript:void(0)') 创建新的STAFF条目
                         div
                             div(v-show='!ui.staffEditor.show')
                                 div.fields
@@ -242,19 +242,20 @@ div.ui.segment(v-if='!ui.errorInfo')
                                 div.ui.tiny.secondary.vertical.menu(style='width: 120%')
                                     a.item(v-for='(r, index) in relationChoices', :key='r.relation',
                                             :class='{active: index === ui.relationEditor.tab}', @click='switchRelationTab(index)',
-                                            @dragover.prevent, @drop.prevent='dropOnTab($event, r.relation)') {{r.name}}
+                                            @dragover.prevent='', @drop.prevent='dropOnTab($event, r.relation)'
+                                            ) {{r.name}}
                                         div.ui.teal.left.pointing.label(style='margin-top: -4px') {{data.relationList[r.relation] ? data.relationList[r.relation].length : 0}}
                             div.five.wide.field
                                 div.ui.list(style='overflow: auto; max-height: 245px; padding-bottom: 25px')
                                     div.item(v-for='(item, index) in data.relationList[ui.relationEditor.tabRelation]', :key='item.id',
                                             draggable='true', @dragstart='dragCurrentItem($event, index)', @dragend='dragItemEnd',
-                                            @dragover.prevent, @drop.prevent='dropOnCurrent($event, index)')
+                                            @dragover.prevent='', @drop.prevent='dropOnCurrent($event, index)')
                                         img.ui.image(:src='item.cover', style='width: 20%')
                                         div.content(style='padding: 5px')
                                             div.header() {{item.title}}
-                                    div.item(v-show='ui.relationEditor.dragging', @dragover.prevent, @drop.prevent='dropOnCurrent($event, null)')
+                                    div.item(v-show='ui.relationEditor.dragging', @dragover.prevent='', @drop.prevent='dropOnCurrent($event, null)')
                                         div.content(style='text-align: center; color: #DADADA; height: 25px') 拖到这里添加
-                            div.nine.wide.field(@dragover.prevent, @drop.prevent='dropOnSearchField($event)')
+                            div.nine.wide.field(@dragover.prevent='', @drop.prevent='dropOnSearchField($event)')
                                 div.ui.transparent.icon.input
                                     input(type='text', :placeholder='simpleTitle || "输入关键字搜索相关番剧"', v-model='ui.relationEditor.search', @keydown.enter='searchRelation')
                                     i.search.link.icon(@click='searchRelation')
@@ -267,7 +268,6 @@ div.ui.segment(v-if='!ui.errorInfo')
                                                 div {{item.title}}
                                 div(style='text-align: center', v-if='ui.relationEditor.searchLoading')
                                     div.ui.active.inline.loader
-
                 //删除条目
                 div.ui.grid
                     div.right.aligned.column
