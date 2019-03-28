@@ -217,6 +217,12 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                 for (let {value, title} of LIMIT_LEVEL_CHOICE) ret[value] = title
                 return ret
             },
+            limitLevelDescription() {
+                return window['LIMIT_LEVEL_DESCRIPTION']
+            },
+            limitLevelClass() {
+                return window['LIMIT_LEVEL_CLASS']
+            },
             relationChoices() {
                 let ret = []
                 for (let i = 0; i < RELATION_NAME.length; ++i) ret[i] = {

@@ -91,7 +91,12 @@ div.ui.segment(v-show='!ui.errorInfo')
                                         a.header(:href='animationDetailURL(relation.id)') {{relation.title}}
                                         div.description(style='font-size: 12px') {{relation.relation}}
         div.two.wide.column
-            div.ui.right.ribbon.label(v-if='detail.limitLevel', :class='limitLevelClass[detail.limitLevel]') {{limitLevelEnums[detail.limitLevel]}}
+            div#limit-level-label.ui.right.ribbon.label(
+                v-show='detail.limitLevel', :class='limitLevelClass[detail.limitLevel]',
+                @mouseenter='ui.limitLevelDescriptionSwitch = true', @mouseleave='ui.limitLevelDescriptionSwitch = false') {{limitLevelEnums[detail.limitLevel]}}
+            div.ui.message(style='padding: 7px; margin: 5px -5px', :class='limitLevelClass[detail.limitLevel]', v-if='ui.limitLevelDescriptionSwitch')
+                ul.list(style='padding: 0; font-size: 10px')
+                    li(v-for='item in limitLevelDescription[detail.limitLevel]') {{item}}
     div.ui.inverted.dimmer(:class='{active: ui.loading}')
         div.ui.loader
 div.ui.placeholder.segment(v-if='ui.errorInfo')

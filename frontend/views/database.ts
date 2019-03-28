@@ -3,6 +3,24 @@
     const $ = window['$']
     const webURL = window['webURL']
     const staticURL = window['staticURL']
+
+    window['LIMIT_LEVEL_DESCRIPTION'] = {
+        'ALL': ['不存在任何性暗示或色情暗示', '不存在任何暴力、血腥内容'],
+        'R12': ['存在轻度的低俗内容或性暗示', '含有适量的暴力倾向或血腥内容'],
+        'R15': ['存在明显的软色情或性暗示', '含有一定的重口、猎奇倾向或较多的血腥、暴力内容'],
+        'R17': ['存在大量色情裸露或强烈的性暗示行为', '含有强烈的重口、猎奇、血腥内容'],
+        'R18': ['存在刻意展示的性行为或性器官暴露'],
+        'R18G': ['含有过于强烈的重口、猎奇、暴力、血腥内容']
+    }
+    window['LIMIT_LEVEL_CLASS'] = {
+        ALL: 'green',
+        R12: 'blue',
+        R15: 'yellow',
+        R17: 'orange',
+        R18: 'red',
+        R18G: 'violet'
+    }
+
     //DATABASE vue 创建函数的名字
     const createVue = {
         'animation-list': 'createAnimationListVue',

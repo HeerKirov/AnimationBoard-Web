@@ -130,7 +130,7 @@ block content
                                 h2(style='position: absolute; right: 140px; top: 0.05em; color: #f2711c') {{detail.score / 2}}
                                 div(v-html='star(detail.score, "orange")', style='position: absolute; width: 140px; right: 0; top: 0.3em; font-size: 20px; text-align: left')
                                 div(style='margin-top: 2.5em')
-                                    h2(style='margin-bottom: 0.2em') {{scoreTitle[Math.ceil(detail.score / 2)]}}
+                                    h2(style='margin-bottom: 0.2em') {{scoreTitle[detail.score]}}
                                     span(style='color: #ADADAD') {{scoreDescription[detail.score]}}
                             div.six.wide.field(style='position: relative; text-align: right', v-else)
                                 input(style='position: absolute; right: 150px; width: 6em; top: -0.15em', type='number', placeholder='评分'
@@ -138,7 +138,7 @@ block content
                                 div(v-html='star(editorScore * 2, "orange")', style='position: absolute; width: 140px; right: 0; top: 0.3em; font-size: 20px; text-align: left', v-if='editorScore')
                                 div(v-html='star(10, "outline orange")', style='position: absolute; width: 140px; right: 0; top: 0.3em; font-size: 20px; text-align: left', v-else)
                                 div(style='margin-top: 2.5em')
-                                    h2(style='margin-bottom: 0.2em') {{scoreTitle[Math.ceil(editorScore)]}}
+                                    h2(style='margin-bottom: 0.2em') {{scoreTitle[editorScore * 2]}}
                                     span(style='color: #ADADAD') {{scoreDescription[editorScore * 2]}}
                         div.field
                             div.ui.divider

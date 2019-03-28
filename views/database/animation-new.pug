@@ -65,14 +65,21 @@ div.ui.segment(v-if='!ui.errorInfo')
                                     label(v-if='!ui.tagEditor.searchFlag && !ui.tagEditor.tagList.length') 没有备选标签。
 
                         div.fields
-                            div.eleven.wide.field
-                                label 关键字
-                                input(type='text', placeholder='用简单的词组描述番剧的特色', v-model='data.keyword')
                             div.five.wide.field
                                 label 限制级
                                 select#limit-level-picker.ui.fluid.search.dropdown.dropdown-select(v-model='data.limitLevel')
                                     option(value=' ') <不选择>
                                     option(v-for='choice in limitLevelChoices', :value='choice.value') {{choice.title}}
+                            div.eleven.wide.field(v-if='data.limitLevel.trim()')
+                                div.ui.message(style='min-height: 5em; font-size: 10px', :class='limitLevelClass[data.limitLevel]')
+                                    ul.list
+                                        li(v-for='item in limitLevelDescription[data.limitLevel]') {{item}}
+                            div.eleven.wide.field(v-else)
+                                label 关键字
+                                input(type='text', placeholder='用简单的词组描述番剧的特色', v-model='data.keyword')
+                        div.field(v-if='data.limitLevel.trim()')
+                            label 关键字
+                            input(type='text', placeholder='用简单的词组描述番剧的特色', v-model='data.keyword')
                         div.field
                             label 简介
                             textarea(v-model='data.introduction', placeholder='用简练的段落描述番剧的内容')

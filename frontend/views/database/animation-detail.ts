@@ -78,6 +78,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                 loading: false,
                 errorInfo: null,
                 durationSwitch: false,      //切换publish type | duration的标记变量
+                limitLevelDescriptionSwitch: false
             },
             record: {
                 watchedQuantity: null,
@@ -108,14 +109,10 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                 }
             },
             limitLevelClass() {
-                return {
-                    ALL: 'green',
-                    R12: 'blue',
-                    R15: 'orange',
-                    R17: 'brown',
-                    R18: 'red',
-                    R18G: 'violet'
-                }
+                return window['LIMIT_LEVEL_CLASS']
+            },
+            limitLevelDescription() {
+                return window['LIMIT_LEVEL_DESCRIPTION']
             },
             publishTypeChoices() {
                 return PUBLISH_TYPE_CHOICE
