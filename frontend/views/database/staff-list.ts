@@ -66,7 +66,7 @@ function createStaffListVue(selectName: string, location: {mode: string, tab: st
                 client.database.staffs.list({
                     search: this.filter.searchText.trim() || undefined,
                     is_organization: FILTER_CHOICE[this.filter.by].value === 'org' ? true : FILTER_CHOICE[this.filter.by].value === 'person' ? false : undefined,
-                    ordering: `${this.sort.desc ? '-' : ''}${SORT_CHOICE[this.sort.by].value}`,
+                    ordering: `${this.sort.desc ? '-' : ''}${SORT_CHOICE[this.sort.by].value}, -id`,
                     limit: this.pagination.pageLimit,
                     offset: (this.pagination.pageIndex - 1) * this.pagination.pageLimit
                 }, (ok, s, d) => {

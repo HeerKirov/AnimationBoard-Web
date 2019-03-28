@@ -381,7 +381,7 @@ interface Diary {
                 client.personal.diaries.list({
                     search: this.filter.search.trim(),
                     status: 'COMPLETE',
-                    ordering: '-finish_time',
+                    ordering: '-finish_time, -id',
                     limit: this.pagination.pageLimit,
                     offset: (this.pagination.pageIndex - 1) * this.pagination.pageLimit
                 }, (ok, s, d) => {

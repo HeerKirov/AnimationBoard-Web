@@ -199,7 +199,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                     limit_level: this.filter.limitLevel.trim() || undefined,
                     search: this.filter.searchText.trim() || undefined,
                     tags__name: generateJoinArray(this.filter.tags) || undefined,
-                    ordering: `${this.sort.desc ? '-' : ''}${SORT_CHOICE[this.sort.by].value}`,
+                    ordering: `${this.sort.desc ? '-' : ''}${SORT_CHOICE[this.sort.by].value}, -id`,
                     limit: this.pagination.pageLimit,
                     offset: (this.pagination.pageIndex - 1) * this.pagination.pageLimit
                 }

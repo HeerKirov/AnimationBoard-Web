@@ -217,7 +217,7 @@
                     client.personal.comments.list({
                         offset: this.feed.offset,
                         limit: FEED_LOAD_LIMIT,
-                        ordering: '-update_time',
+                        ordering: '-update_time, -id',
                         search: this.filter.search.trim() || null,
                     }, (ok, s, d) => {
                         this.feed.loading = false
@@ -364,7 +364,7 @@
                     score__ge: this.filter.scoreMin ? parseFloat(this.filter.scoreMin) * 2 : undefined,
                     score__le: this.filter.scoreMax ? parseFloat(this.filter.scoreMax) * 2 : undefined,
                     search: this.filter.search.trim(),
-                    ordering: `${this.sort.desc ? '-' : ''}${SORT_CHOICE[this.sort.by].value}`,
+                    ordering: `${this.sort.desc ? '-' : ''}${SORT_CHOICE[this.sort.by].value}, -id`,
                     limit: this.pagination.pageLimit,
                     offset: (this.pagination.pageIndex - 1) * this.pagination.pageLimit
                 }, (ok, s, d) => {
