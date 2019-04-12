@@ -87,7 +87,7 @@ div.ui.segment(v-if='panel.errorInfo == null')
         div.column(v-for='item in data')
             div.ui.card
                 div.image
-                    img(:src='item.cover')
+                    img(:src='item.cover', @click='gotoDetail(item.id)')
                 div.content
                     a.header(:href='animationDetailURL(item.id)', style='font-size: 14px') {{item.title}}
                     div.meta(v-if='!view.simpleCard && item.publish_time')

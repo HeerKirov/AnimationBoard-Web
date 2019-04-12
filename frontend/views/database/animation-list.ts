@@ -177,6 +177,9 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                     this.query()
                 }
             },
+            gotoDetail(id: number) {
+                window.location.href = this.animationDetailURL(id)
+            },
             //处理逻辑
             analyseHashParameters(params) {
                 if(params['tags']) {

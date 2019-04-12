@@ -29,6 +29,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
         {value: 'R18', title: 'R18'},
         {value: 'R18G', title: 'R18G'},
     ]
+    const MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
 
     function fmtUTCDate(date: Date): string | null {
         if(date != null) {
@@ -451,6 +452,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
     $(`${selectName} #diary-record-modal`).modal({duration: 100, centered: false})
     $('#diary-record-modal #subscription-time-picker').calendar({
         type: 'date',
+        text: {months: MONTHS, monthsShort: MONTHS},
         formatter: {
             date(date) {
                 if (!date) return null
@@ -472,6 +474,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
     })
     $('#diary-record-modal #finish-time-picker').calendar({
         type: 'date',
+        text: {months: MONTHS, monthsShort: MONTHS},
         formatter: {
             date(date) {
                 if (!date) return null

@@ -224,5 +224,4 @@
 
     hashChanged()
     window.onhashchange = hashChanged
-
 })()

@@ -1,0 +1,51 @@
+div.ui.menu
+    a.ui.icon.item(href='#')
+        i.left.angle.icon
+    div.ui.item
+        i.home.icon(style='margin-right: 5px')
+        = '概览'
+    div.ui.right.floating.dropdown.icon.item.dropdown-menu
+        i.ellipsis.horizontal.icon
+        div.menu
+            a.icon.item(@click='refresh()')
+                i.sync.alternate.icon
+                = '刷新'
+            a.icon.item(@click='refresh(true)')
+                i.hand.point.right.icon
+                = '重新生成'
+
+div.ui.segment(v-show='!ui.errorInfo && !ui.notExist')
+    div.ui.grid
+        div.one.wide.column
+        div.fourteen.wide.column
+            div.ui.grid
+                div.sixteen.wide.column
+                    div.ui.horizontal.statistic
+                        div.value {{data.count}}
+                        div.label 番剧数量
+                    div.ui.horizontal.statistic
+                        div.value {{data.scoreAvg}}
+                        div.label 平均分
+                div.four.wide.column
+                    canvas#score
+                div.four.wide.column
+                    canvas#limit-level
+                div.four.wide.column
+                    canvas#publish-type
+                div.four.wide.column
+                    canvas#original-work-type
+                div.sixteen.wide.column
+                    canvas#tags
+        div.one.wide.column
+    div.ui.active.inverted.dimmer(v-if='ui.loading')
+        div.ui.loader
+div.ui.segment.placeholder(v-if='!ui.errorInfo && ui.notExist')
+    div.ui.icon.header
+        i.home.bar.icon
+        button.ui.green.button(@click='refresh(true)') 生成概览数据
+    div.ui.active.inverted.dimmer(v-if='ui.loading')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='ui.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{ui.errorInfo}}'

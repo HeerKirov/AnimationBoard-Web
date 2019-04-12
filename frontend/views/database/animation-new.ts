@@ -1029,6 +1029,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
     })
     $(`${selectName} #publish-time-picker`).calendar({
         type: 'month',
+        text: {months: MONTHS, monthsShort: MONTHS},
         formatter: {
             date(date, settings) {
                 if (!date) return null

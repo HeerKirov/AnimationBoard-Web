@@ -1,0 +1,149 @@
+div.ui.menu
+    a.ui.icon.item(href='#')
+        i.left.angle.icon
+    div.ui.item
+        i.coffee.icon(style='margin-right: 5px')
+        = '季度'
+    div.ui.right.item
+        b {{tab.chart ? "季度总览" : `${tab.year}年${seasonName[tab.season]}季 追番报表`}}
+    div.ui.floating.dropdown.icon.item.dropdown-menu(v-show='tab.chart')
+        i.chart.bar.icon(style='margin-right: 5px')
+        span {{chart.viewTitle}}
+        div.menu
+            div.item(v-for='(choice, index) in chartViewChoices', @click='changeChartView(index)') {{choice.title}}
+    template(v-if='tab.chart')
+        div.menu
+            div.item
+                div.ui.transparent.input
+                    input(type='number', style='max-width: 70px', :min='minYear', :max='maxYear', v-model='chart.beginYear', @keydown.enter='changeChartRange')
+        a.ui.icon.item(@click='changeChartRange')
+            i.arrow.right.icon
+        div.menu
+            div.item
+                div.ui.transparent.input
+                    input(type='number', style='max-width: 70px', :min='minYear', :max='maxYear', v-model='chart.endYear', @keydown.enter='changeChartRange')
+    div.ui.floating.dropdown.icon.item.dropdown-menu
+        i.ellipsis.horizontal.icon
+        div.menu
+            a.icon.item(@click='refresh()')
+                i.sync.alternate.icon
+                = '刷新'
+            a.icon.item(@click='refresh(true)')
+                i.hand.point.right.icon
+                = '重新生成'
+            a.icon.item(@click='help')
+                i.question.circle.icon
+                = '简介'
+
+div.ui.segment(v-show='!ui.errorInfo')
+    div.ui.grid
+        div.four.wide.column
+            div.ui.secondary.vertical.pointing.menu
+                a.item(@click='navigateToChart', :class='{active: tab.chart}') 季度总览
+                a.item.icon(@click='navigateYear("next")', :class='{disabled: tab.listYear >= maxYear, active: tab.year && tab.year > tab.listYear}')
+                    i.angle.up.icon
+                a.item(v-for='season in currentSeasons', @click='navigateSeason(season)',
+                    :class='{active: tab.year === tab.listYear && tab.season === season}') {{tab.listYear}}年{{season * 3 + 1}}月
+                a.item.icon(@click='navigateYear("prev")', :class='{disabled: tab.listYear <= minYear, active: tab.year && tab.year < tab.listYear}')
+                    i.angle.down.icon
+        div.eleven.wide.column
+            div(v-show='tab.chart && !chart.notExist')
+                canvas#chart
+            div(v-show='!tab.chart && !table.notExist')
+                div.ui.grid
+                    div.row
+                        div.three.wide.column
+                            div.ui.statistic
+                                div.value {{table.count}}
+                                div.label 番剧数量
+                        div.two.wide.column
+                            div.ui.pink.small.statistic
+                                div.value {{table.scoreMin}}
+                                div.label 最低评分
+                        div.two.wide.column
+                            div.ui.purple.small.statistic
+                                div.value {{table.scoreAvg}}
+                                div.label 平均评分
+                        div.two.wide.column
+                            div.ui.violet.small.statistic
+                                div.value {{table.scoreMax}}
+                                div.label 最高评分
+                        div.three.wide.column
+                            div.ui.olive.small.statistic
+                                div.value {{table.eachDelay}}
+                                div.label 每话看完延时/天
+                        div.three.wide.column
+                            div.ui.green.small.statistic
+                                div.value {{table.finishDelay}}
+                                div.label 全集看完延时/天
+                    div.row(style='margin-top: 15px')
+                        div.ten.wide.column
+                            div.ui.items
+                                div.item(v-for='animation in table.animations')
+                                    div.ui.tiny.image
+                                        img(:src='animation.cover')
+                                        div.ui.top.right.attached.green.tiny.label(style='padding: 4px 6px', v-if='!animation.complete') 没有看完
+                                    div.content
+                                        a.header(:href='animationDetailURL(animation.animationId)', target='_blank') {{animation.title}}
+                                        div.meta(v-if='animation.score')
+                                            div(v-html='star(animation.score * 2, "orange")')
+                                        div.description
+                                        div.extra
+                                            div.ui.olive.label(v-if='animation.eachDelay != null', style='padding: 5px 8px')
+                                                = '每话看完延时'
+                                                div.detail {{animation.eachDelay}}天
+                                            div.ui.green.label(v-if='animation.finishDelay != null', style='padding: 5px 8px')
+                                                = '全集看完延时'
+                                                div.detail {{animation.finishDelay}}天
+                                            span {{fmtStdDate(animation.finishTime)}}
+                        div.six.wide.column
+                            canvas#table-limit-level
+                            div(style='margin-top: 15px; padding-left: 15px')
+                                template(v-for='tag in table.tags')
+                                    div.ui.tag.label(style='margin-top: 5px') {{tag.name}}
+                                    div.ui.label.teal {{tag.count}}
+            div(v-show='tab.chart && chart.notExist')
+                div.ui.segment.placeholder
+                    div.ui.icon.header
+                        i.chart.bar.icon
+                        button.ui.green.button(@click='refresh(true)') 生成季度总览
+            div(v-show='!tab.chart && table.notExist')
+                div.ui.segment.placeholder
+                    div.ui.icon.header
+                        i.table.icon
+                        button.ui.green.button(@click='refresh(true)') 生成{{tab.year}}年{{seasonName[tab.season]}}季报表
+
+        div.one.wide.column
+    div.ui.active.inverted.dimmer(v-if='ui.loading')
+        div.ui.loader
+
+div.ui.placeholder.segment(v-if='ui.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{ui.errorInfo}}'
+
+div#season-help-modal.ui.modal
+    div.header 季度统计
+    div.content
+        div 大部分TV和Web动画都按照冬、春、夏、秋四个季度发布和放送，而追番通常也是如此。季度统计项目专门统计每个季度季内的追番情况，以及季度之间的数量关系。
+        h4
+            i.chart.bar.icon
+            = '季度总览'
+        div 以柱状图的形式，展示所有季度的数量关系对比。这些数量关系包括：番剧数量，评分关系，看完延时。
+        h4
+            i.table.icon
+            = '单季概览'
+        div 给出这一季的概览数据，以及这一季的番剧列表。
+        h5 Tips
+        div
+            i - 报表不会自动更新。需要刷新报表，请使用[重新生成]功能。
+        div
+            i - 生成单季概览会同步刷新对应部分的季度总览，但是不是全部。
+        div
+            i - 只有这样的动画才会被计入统计范围：
+        div
+            i - 1. 动画的发布日期是该季度的第一个月(例如，冬季的第一个月是1月，春季的第一个月是4月)，动画的类型是"TV & Web"；
+        div
+            i - 2. 加入追番日记，追番状态为"进行中"或"已完成"；
+        div
+            i - 3. 日记的订阅时间不为空，且在动画发布日期后的90天以内。

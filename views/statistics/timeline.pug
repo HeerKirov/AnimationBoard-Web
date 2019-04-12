@@ -1,0 +1,146 @@
+div.ui.menu
+    a.ui.icon.item(href='#')
+        i.left.angle.icon
+    div.ui.item
+        i.hourglass.half.icon(style='margin-right: 5px')
+        = '时间线'
+    div.ui.right.floating.dropdown.item.icon.dropdown-menu {{data.title || (data.tab === 'create' ? '新建时间线' : '时间线项目')}}
+        i.caret.down.icon(style='margin-left: 5px')
+        div.menu
+            a.item(v-for='record in records', @click='navigateToInfo(record.key)') {{record.title || record.key}}
+    div.ui.floating.dropdown.icon.item.dropdown-menu
+        i.ellipsis.horizontal.icon
+        div.menu
+            a.icon.item(@click='navigateToEdit', v-if='data.tab === "info" && data.key != null')
+                i.edit.icon
+                = '更改时间线'
+            a.icon.item(@click='navigateToCreate')
+                i.plus.icon
+                = '新建时间线'
+            a.icon.item(@click='help')
+                i.question.circle.icon
+                = '简介'
+
+div.ui.segment(v-show='!ui.errorInfo')
+    //无选项时的select|create面板
+    div.ui.grid(v-if='data.tab === "select"')
+        div.four.wide.column
+        div.eight.wide.column
+            div.ui.fluid.one.item.tiny.menu(v-for='record in records')
+                a.item(@click='navigateToInfo(record.key)') {{record.title}}
+            div.ui.fluid.one.item.tiny.menu(v-if='!records.length')
+                div.item 当前没有已存在的时间线项目
+            button.ui.green.fluid.icon.tiny.button(@click='navigateToCreate')
+                i.plus.icon
+                = '新建时间线'
+        div.four.wide.column
+    div.ui.grid(v-show='data.tab === "edit" || data.tab === "create"')
+        div.four.wide.column
+        div.eight.wide.column
+            div.ui.form
+                div.fields
+                    div.eight.wide.field
+                        label ID
+                        span(v-if='data.tab === "edit"') {{edit.key}}
+                        input(type='text', placeholder='ID将作为标识名，确立后无法更改', v-else, v-model='edit.key')
+                        div.ui.top.pointing.red.basic.label(v-if='edit.keyError') {{edit.keyError}}
+                    div.eight.wide.field
+                        label 标题
+                        input(type='text', placeholder='时间线项目的标题', v-model='edit.title')
+                div.field
+                    label 分区模式
+                    div.ui.two.small.buttons
+                        button.ui.green.button(:class='{basic: edit.panel !== "std"}', @click='changeEditPanel("std")') 添加自定义区段
+                        div.or(data-text='或')
+                        button.ui.olive.button(:class='{basic: edit.panel !== "month"}', @click='changeEditPanel("month")') 添加月份区段
+                    div.ui.segment(v-show='edit.panel === "std"')
+                        div.ui.form
+                            div.two.columns.fields
+                                div.field
+                                    label 起始时间
+                                    div#std-begin-time-picker.ui.calendar
+                                        div.ui.input.left.icon
+                                            i.calendar.icon
+                                            input(type='text', placeholder='区间开始时间')
+                                div.field
+                                    label 截止时间
+                                    div#std-end-time-picker.ui.calendar
+                                        div.ui.input.left.icon
+                                            i.calendar.icon
+                                            input(type='text', placeholder='区间截止时间(不包括)')
+                            div.field
+                                label 标签
+                                div.ui.input
+                                    input(type='text', placeholder='标签', v-model='edit.std.label')
+                                    button.ui.icon.green.button(@click='addStdPartition')
+                                        i.check.icon
+                    div.ui.segment(v-show='edit.panel === "month"')
+                        div.ui.form
+                            div.two.columns.fields
+                                div.field
+                                    label 起始时间
+                                    div#month-begin-time-picker.ui.calendar
+                                        div.ui.input.left.icon
+                                            i.calendar.icon
+                                            input(type='text', placeholder='从哪一个月开始')
+                                div.field
+                                    label 截止时间
+                                    div#month-end-time-picker.ui.calendar
+                                        div.ui.input.left.icon
+                                            i.calendar.icon
+                                            input(type='text', placeholder='到哪一个月截止(包括)')
+                            div.field
+                                label 标签样式
+                                div.ui.input
+                                    input(type='text', placeholder='标签的生成内容', v-model='edit.month.label')
+                                    button.ui.icon.green.button(@click='addMonthPartition')
+                                        i.check.icon
+                    div.ui.list(style='overflow: auto; max-height: 480px')
+                        div.item(v-for='(partition, index) in edit.partitions')
+                            div.right.floated.content
+                                button.ui.icon.mini.button(@click='removePartition(index)')
+                                    i.times.icon
+                            div.content {{partition.label}} ({{fmtStdDate(partition.begin)}} - {{fmtStdDate(partition.end)}})
+                    button.ui.fluid.green.icon.small.button(@click='saveEditor', v-if='edit.panel == null')
+                        i.save.icon(style='margin-right: 5px')
+                        = '保存'
+        div.four.wide.column
+    div.ui.grid(v-show='data.tab === "info"')
+        div.row(style='min-height: 45px; z-index: 1')
+            div.ui.basic.mini.buttons(style='position: absolute; left: 10px')
+                button.ui.icon.button(@click='changeSelector("begin", data.rangeBegin - 1)')
+                    i.left.angle.icon
+                div#range-begin-selector.ui.search.button.floating.dropdown {{data.labels[data.rangeBegin]}}
+                    div.menu
+                        div.item(v-for='(label, index) in data.labels', @click='changeSelector("begin", index)') {{label}}
+                button.ui.icon.button(@click='changeSelector("begin", data.rangeBegin + 1)')
+                    i.right.angle.icon
+            div#view-selector.ui.basic.mini.icon.button.floating.dropdown(style='position: absolute; left: 50%; transform: translate(-50%, 0)')
+                i.chart.bar.icon(style='margin-right: 5px')
+                = '{{data.viewTitle}}'
+                div.menu
+                    div.item(v-for='(item, index) in chartViewChoices', @click='changeView(index)') {{item.title}}
+            div.ui.basic.mini.buttons(style='position: absolute; right: 10px')
+                button.ui.icon.button(@click='changeSelector("end", data.rangeEnd - 1)')
+                    i.left.angle.icon
+                div#range-end-selector.ui.search.button.floating.dropdown {{data.labels[data.rangeEnd]}}
+                    div.menu
+                        div.item(v-for='(label, index) in data.labels', @click='changeSelector("end", index)') {{label}}
+                button.ui.icon.button(@click='changeSelector("end", data.rangeEnd + 1)')
+                    i.right.angle.icon
+        div.row(style='padding: 10px; z-index: 0')
+            canvas#chart
+    div.ui.active.inverted.dimmer(v-if='ui.loading')
+        div.ui.loader
+div.ui.placeholder.segment(v-if='ui.errorInfo')
+    div.ui.icon.header
+        i.times.icon
+        = '{{ui.errorInfo}}'
+
+div#timeline-help-modal.ui.modal
+    div.header 时间线
+    div.content
+        div 时间线功能以"番剧看完时间"为时间轴，收集统计轴上按时间段聚合的番剧数量信息。
+        h5 使用说明
+        div 新建时间线时，您需要提供一组配置参数，来说明时间线上应当按照怎样的时间区段进行聚合。
+        div 系统也提供了几项默认的聚合分区模式。

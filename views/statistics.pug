@@ -3,9 +3,50 @@ extends layout
 block title
     = `统计 - ${title}`
 
+block import
+    script(src='https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js')
+
 block content
-    div#main.ui.container
-        div.ui.segment.placeholder
+    style.
+        .view-div {display: none}
+    div.ui.container
+        div#main.ui.segment.view-div
+            div.ui.grid
+                div.three.wide.column
+                div.ten.wide.column
+                    div.ui.three.columns.grid
+                        div.column
+                            div.ui.blue.segment(style='text-align: center; padding-top: 1.5em; min-height: 200px')
+                                a(href='#/overview/')
+                                    h2.ui.icon.header
+                                        i.home.icon
+                                        div.content 概览
+                                            div.sub.header 追番足迹的概括统计
+                        div.column
+                            div.ui.green.segment(style='text-align: center; padding-top: 1.5em; min-height: 200px')
+                                a(href='#/season/')
+                                    h2.ui.icon.header
+                                        i.coffee.icon
+                                        div.content 季度
+                                            div.sub.header 各个季度的番剧报表及总表
+                        div.column
+                            div.ui.teal.segment(style='text-align: center; padding-top: 1.5em; min-height: 200px')
+                                a(href='#/timeline/')
+                                    h2.ui.icon.header
+                                        i.hourglass.half.icon
+                                        div.content 时间线
+                                            div.sub.header 在时间轴上查看聚合统计
+                        div.column(style='display: none')
+                            div.ui.segment(style='text-align: center; padding-top: 1.5em; min-height: 200px')
+                                h2.ui.icon.header(style='color: #ADADAD')
+                                    i.code.icon
+                                    div.content 更多功能
+                                        div.sub.header(style='color: #DADADA') 更多统计功能请等待后续开发
+                div.three.wide.column
+        div#overview.view-div
+        div#season.view-div
+        div#timeline.view-div
+        div#not-found.ui.segment.placeholder.view-div
             div.ui.icon.header
-                i.times.icon
-                = '尚未开发。'
+                i.close.icon
+                = '404 Not Found'

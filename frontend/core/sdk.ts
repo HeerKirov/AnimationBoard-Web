@@ -68,14 +68,14 @@ class Client {
                 this.instance.delete(this.getDetailURL(url, id), {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
                     .catch((error) => this.callbackFailed(callback, error)),
-            get: (url: string) => (callback) =>
-                this.instance.get(this.getURL(url), {headers: this.getHeaders()})
-                    .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => this.callbackFailed(callback, error)),
-            post: (url: string) => (content, callback) =>
-                this.instance.post(this.getURL(url), content, {headers: this.getHeaders()})
-                    .then((response) => Client.callbackSuccess(callback, response))
-                    .catch((error) => this.callbackFailed(callback, error)),
+            get: (url: string) => (params, callback) =>
+                this.instance.get(this.getURL(url), {params: callback ? params : null, headers: this.getHeaders()})
+                    .then((response) => Client.callbackSuccess(callback || params, response))
+                    .catch((error) => this.callbackFailed(callback || params, error)),
+            post: (url: string) => (content, params, callback) =>
+                this.instance.post(this.getURL(url), content, {params: callback ? params : null, headers: this.getHeaders()})
+                    .then((response) => Client.callbackSuccess(callback || params, response))
+                    .catch((error) => this.callbackFailed(callback || params, error)),
             put: (url: string) => (content, callback) =>
                 this.instance.put(this.getURL(url), content, {headers: this.getHeaders()})
                     .then((response) => Client.callbackSuccess(callback, response))
@@ -137,6 +137,7 @@ class Client {
             diaries: this.endpoint('/personal/diaries'),
             comments: this.endpoint('/personal/comments')
         }
+        this['statistics'] = this.endpoint('/statistics', ['get', 'post'])
         this['admin'] = {
             setting: this.endpoint('/admin/setting', ['get', 'post']),
             users: this.endpoint('/admin/users', ['list', 'retrieve', 'update', 'partialUpdate']),
