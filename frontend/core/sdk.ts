@@ -155,4 +155,8 @@ class Client {
             window.localStorage.removeItem(this.tokenName)
         }
     }
+
+    getCoverFile(filename: string): string {
+        return filename ? `${this.serverURL}/cover/?id=${filename}` : null
+    }
 }

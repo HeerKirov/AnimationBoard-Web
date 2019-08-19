@@ -63,7 +63,7 @@
                     this.profile.is_superuser = d['is_superuser']
                     this.profile.username = d['username']
                     this.profile.name = d['name']
-                    this.profile.cover = d['cover'] ? `${serverURL}/static/cover/${d['cover']}` : NO_COVER_URL
+                    this.profile.cover = client.getCoverFile(d['cover']) || NO_COVER_URL
                     this.profile.night_update_mode = d['night_update_mode']
                     this.profile.animation_update_notice = d['animation_update_notice']
                     if(!this.profile.is_staff) {

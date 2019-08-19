@@ -246,7 +246,7 @@ function createAnimationListVue(selectName: string, location: {mode: string, tab
                     if('cover' in d) {
                         let cover = d['cover']
                         if(cover) {
-                            d['cover'] = `${serverURL}/static/cover/${cover}`
+                            d['cover'] = client.getCoverFile(cover)
                         }else{
                             d['cover'] = NO_COVER_URL
                         }

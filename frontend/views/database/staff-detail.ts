@@ -95,7 +95,7 @@ function createStaffDetailVue(selectName: string, location: {mode: string, tab: 
                                 list[list.length] = {
                                     id: animation.id,
                                     title: animation.title,
-                                    cover: animation.cover ? `${serverURL}/static/cover/${animation.cover}` : NO_COVER_URL
+                                    cover: client.getCoverFile(animation.cover) || NO_COVER_URL
                                 }
                             }
                             vm.ui[field] = list

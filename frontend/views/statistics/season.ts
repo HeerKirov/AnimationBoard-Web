@@ -328,7 +328,7 @@ function createSeasonVue(selectName: string, location: {tab: string}) {
                     animations[animations.length] = {
                         animationId: animation.animation_id,
                         title: animation.title,
-                        cover: animation.cover ? `${serverURL}/static/cover/${animation.cover}` : NO_COVER_URL,
+                        cover: client.getCoverFile(animation.cover) || NO_COVER_URL,
                         complete: animation.complete,
                         finishTime: animation.finish_time ? new Date(animation.finish_time) : null,
                         eachDelay: animation.each_delay_avg != null ? (animation.each_delay_avg > 0 ? Math.floor(animation.each_delay_avg / 24) : 0) : null,

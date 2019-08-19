@@ -76,7 +76,7 @@ interface DiaryData {
                                 if(diff < 14) {
                                     data.splice(data.length, 0, {
                                         title: item.title,
-                                        cover: item.cover ? `${serverURL}/static/cover/${item.cover}` : NO_COVER_URL,
+                                        cover: client.getCoverFile(item.cover) || NO_COVER_URL,
                                         animationId: item.animation,
                                         weekday: next.getDay() || 7,
                                         nextDate: next,
@@ -110,7 +110,7 @@ interface DiaryData {
                                     if(diff < 14) {
                                         data.splice(data.length, 0, {
                                             title: item.title,
-                                            cover: item.cover ? `${serverURL}/static/cover/${item.cover}` : NO_COVER_URL,
+                                            cover: client.getCoverFile(item.cover) || NO_COVER_URL,
                                             animationId: item.animation,
                                             weekday: next.getDay() || 7,
                                             nextDate: next,

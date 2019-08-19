@@ -243,7 +243,7 @@
                     id: data.id,
                     animation: data.animation,
                     title: data.title,
-                    cover: data.cover ? `${serverURL}/static/cover/${data.cover}` : NO_COVER_URL,
+                    cover: client.getCoverFile(data.cover) || NO_COVER_URL,
                     score: data.score,
                     shortComment: data.short_comment,
                     article: data.article != null ? (data.article.length > FEED_ARTICLE_LENGTH ? data.article.substr(0, FEED_ARTICLE_LENGTH) + '...' : data.article) : null,
@@ -290,7 +290,7 @@
             formatDetail(data: any): any {
                 setTitle(`${data.title} - 评价`)
                 this.detail.title = data.title
-                this.detail.cover = data.cover ? `${serverURL}/static/cover/${data.cover}` : NO_COVER_URL
+                this.detail.cover = client.getCoverFile(data.cover) || NO_COVER_URL
                 this.detail.score = data.score
                 this.detail.shortComment = data.short_comment
                 this.detail.article = data.article
@@ -298,7 +298,7 @@
             formatNew(data: any): any {
                 setTitle(`${data.title} - 评价`)
                 this.detail.title = data.title
-                this.detail.cover = data.cover ? `${serverURL}/static/cover/${data.cover}` : NO_COVER_URL
+                this.detail.cover = client.getCoverFile(data.cover) || NO_COVER_URL
                 this.detail.score = ''
                 this.detail.shortComment = ''
                 this.detail.article = ''

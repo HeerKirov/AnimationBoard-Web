@@ -128,7 +128,7 @@ interface Diary {
         })()
         return {
             title: origin.title,
-            cover: origin.cover ? `${serverURL}/static/cover/${origin.cover}` : NO_COVER_URL,
+            cover: client.getCoverFile(origin.cover) || NO_COVER_URL,
             animation: origin.animation,
             watchedQuantity: origin.watched_quantity,
             sumQuantity: origin.sum_quantity || 0,

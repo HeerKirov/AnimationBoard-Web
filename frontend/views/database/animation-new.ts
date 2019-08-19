@@ -86,7 +86,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
             if(relation && relation[r]) {
                 for(let obj of relation[r]) {
                     if(typeof obj === 'object') {
-                        objList[objList.length] = {id: obj.id, title: obj.title, cover: obj.cover ? `${serverURL}/static/cover/${obj.cover}` : NO_COVER_URL}
+                        objList[objList.length] = {id: obj.id, title: obj.title, cover: client.getCoverFile(obj.cover) || NO_COVER_URL}
                     }else{
                         objList[objList.length] = {id: obj, title: obj, cover: null}
                     }
@@ -873,7 +873,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                             this.ui.relationEditor.showResult = mapArray(d, (item) => {
                                 return item.id !== editId ? {
                                     id: item.id, title: item.title,
-                                    cover: item.cover ? `${serverURL}/static/cover/${item.cover}` : NO_COVER_URL
+                                    cover: client.getCoverFile(item.cover) || NO_COVER_URL
                                 } : undefined
                             })
                         } else if (s != null) {

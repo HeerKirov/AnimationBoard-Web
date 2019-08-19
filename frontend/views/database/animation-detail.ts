@@ -317,7 +317,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
                                     if(typeof obj === 'object') {
                                         ret[ret.length] = {
                                             id: obj.id, title: obj.title, relation: rName,
-                                            cover: obj.cover ? `${serverURL}/static/cover/${obj.cover}` : NO_COVER_URL
+                                            cover: client.getCoverFile(obj.cover) || NO_COVER_URL
                                         }
                                     }else{
                                         ret[ret.length] = {id: obj, title: obj, cover: null, relation: rName}
@@ -331,7 +331,7 @@ function createAnimationDetailVue(selectName: string, location: {mode: string, t
 
                 let data = this.detail
                 setTitle(`${backend.title} - 番剧`)
-                data.cover = backend.cover ? `${serverURL}/static/cover/${backend.cover}` : null
+                data.cover = client.getCoverFile(backend.cover)
                 data.title = backend.title
                 data.originTitle = backend.origin_title
                 data.otherTitle = backend.other_title

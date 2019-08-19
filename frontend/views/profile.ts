@@ -74,7 +74,7 @@
                         })(d['create_time'])
                         this.info.isStaff = d['is_staff']
                         this.info.isSuperuser = d['is_superuser']
-                        this.info.cover = d['cover'] ? `${serverURL}/static/cover/${d['cover']}` : NO_COVER_URL
+                        this.info.cover = client.getCoverFile(d['cover']) || NO_COVER_URL
                         this.setting.animationUpdateNotice = d['animation_update_notice']
                         this.setting.nightUpdateMode = d['night_update_mode']
                     }else{
@@ -173,7 +173,7 @@
                         client.cover.profile(this.info.username, file, (ok, s, d) => {
                             if(ok) {
                                 if(d && 'cover' in d) {
-                                    this.info.cover = d['cover'] ? `${serverURL}/static/cover/${d['cover']}` : NO_COVER_URL
+                                    this.info.cover = client.getCoverFile(d['cover']) || NO_COVER_URL
                                 }
                             }else{
                                 alert('新头像上传失败。')
