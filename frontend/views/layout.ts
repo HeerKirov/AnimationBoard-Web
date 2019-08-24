@@ -179,7 +179,7 @@
         },
         created() {
             client.user.status.get((ok, s, d) => {
-                if(ok && d.status) {
+                if(ok && d.login) {
                     client.profile.info.get((ok, s, d) => {
                         if(ok) {
                             this.profile.is_authenticated = true
@@ -203,10 +203,10 @@
                 }else{
                     this.profile.is_authenticated = false
                     this.profile.is_staff = false
-                }
-                if(delegateList.length > 0) {
-                    for(let delegate of delegateList) delegate(this.profile)
-                    delegateList = []
+                    if(delegateList.length > 0) {
+                        for(let delegate of delegateList) delegate(this.profile)
+                        delegateList = []
+                    }
                 }
             })
         }
