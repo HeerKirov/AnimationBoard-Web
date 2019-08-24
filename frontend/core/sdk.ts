@@ -115,6 +115,7 @@ class Client {
             profile: this.generateCoverData('/cover/profile'),
         }
         this['user'] = {
+            status: this.endpoint('/user/log-status', ['get']),
             login: this.endpoint('/user/login', ['post']),
             logout: this.endpoint('/user/logout', ['post']),
             token: this.endpoint('/user/token', ['post']),

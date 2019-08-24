@@ -178,17 +178,28 @@
             }
         },
         created() {
-            client.profile.info.get((ok, s, d) => {
-                if(ok) {
-                    this.profile.is_authenticated = true
-                    this.profile.is_staff = d['is_staff']
-                    this.profile.is_superuser = d['is_superuser']
-                    this.profile.username = d['username']
-                    this.profile.name = d['name']
-                    this.profile.cover = client.getCoverFile(d['cover']) || NO_COVER_URL
-                    this.profile.night_update_mode = d['night_update_mode']
-                    this.profile.animation_update_notice = d['animation_update_notice']
-                    this.requestUnreadCount()
+            client.user.status.get((ok, s, d) => {
+                if(ok && d.status) {
+                    client.profile.info.get((ok, s, d) => {
+                        if(ok) {
+                            this.profile.is_authenticated = true
+                            this.profile.is_staff = d['is_staff']
+                            this.profile.is_superuser = d['is_superuser']
+                            this.profile.username = d['username']
+                            this.profile.name = d['name']
+                            this.profile.cover = client.getCoverFile(d['cover']) || NO_COVER_URL
+                            this.profile.night_update_mode = d['night_update_mode']
+                            this.profile.animation_update_notice = d['animation_update_notice']
+                            this.requestUnreadCount()
+                        }else{
+                            this.profile.is_authenticated = false
+                            this.profile.is_staff = false
+                        }
+                        if(delegateList.length > 0) {
+                            for(let delegate of delegateList) delegate(this.profile)
+                            delegateList = []
+                        }
+                    })
                 }else{
                     this.profile.is_authenticated = false
                     this.profile.is_staff = false
