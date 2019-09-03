@@ -58,7 +58,8 @@ router.route({
         serverURL: config.serverURL,
         staticURL: `/${config.prefix}static`,
         webURL: `/${config.prefix}web`,
-        selfLocation: router.getInternalParamsFunction('selfLocation')
+        selfLocation: router.getInternalParamsFunction('selfLocation'),
+        caseNumber: config.caseNumber
     })
 
 
