@@ -317,27 +317,28 @@ interface Diary {
             },
             refreshDiaryList() {
                 /** 将query请求到的backend数据刷新到显示列表中。这个过程会处理筛选或排序等工作。 */
-                this.requestForSetting()
-                let ret: Diary[] = []
-                let filterFunction = FILTER_FUNCTION[this.filter.value]
-                let searchText = this.filter.search.trim() ? this.filter.search.trim().split(' ') : null
-                function searchFor(data: ServerDiary): boolean {
-                    if(searchText) {
-                        for(let i of searchText) {
-                            if(data.title.indexOf(i) >= 0) {
-                                return true
+                this.requestForSetting(() => {
+                    let ret: Diary[] = []
+                    let filterFunction = FILTER_FUNCTION[this.filter.value]
+                    let searchText = this.filter.search.trim() ? this.filter.search.trim().split(' ') : null
+                    function searchFor(data: ServerDiary): boolean {
+                        if(searchText) {
+                            for(let i of searchText) {
+                                if(data.title.indexOf(i) >= 0) {
+                                    return true
+                                }
                             }
+                            return false
+                        }else{
+                            return true
                         }
-                        return false
-                    }else{
-                        return true
                     }
-                }
-                for(let d of backend) if(filterFunction(d) && searchFor(d)) ret[ret.length] = transDiaryToLocal(d)
-                let sortFunction = SORT_FUNCTION[SORT_CHOICE[this.sort.by].value]
+                    for(let d of backend) if(filterFunction(d) && searchFor(d)) ret[ret.length] = transDiaryToLocal(d)
+                    let sortFunction = SORT_FUNCTION[SORT_CHOICE[this.sort.by].value]
 
-                ret.sort(this.sort.desc ? ((a, b) => sortFunction(b, a)) : sortFunction)
-                this.items = mapArray(ret, (d) =>{return {data: d, mouseover: false, loading: false}})
+                    ret.sort(this.sort.desc ? ((a, b) => sortFunction(b, a)) : sortFunction)
+                    this.items = mapArray(ret, (d) =>{return {data: d, mouseover: false, loading: false}})
+                })
             },
             pushNextWatch(item: {data: Diary, loading: boolean}) {
                 if(item.data.watchedQuantity < item.data.publishedQuantity) {
@@ -362,17 +363,21 @@ interface Diary {
                     })
                 }
             },
-            requestForSetting() {
+            requestForSetting(callback: () => void) {
                 if(this.ui.nightMode == null) {
                     if(window['vms']['top-bar'].profile.is_authenticated != null) {
                         this.ui.nightMode = window['vms']['top-bar'].profile.night_update_mode
+                        if(typeof callback == 'function') callback()
                     }else{
                         client.profile.info.get((ok, s, d) => {
                             if(ok) {
                                 this.ui.nightMode = d.night_update_mode
                             }
+                            if(typeof callback == 'function') callback()
                         })
                     }
+                }else{
+                    if(typeof callback == 'function') callback()
                 }
             },
             //【历史】数据逻辑
@@ -458,10 +463,11 @@ interface Diary {
                 })
 
                 function doSomething(data: ServerDiary) {
-                    vm.requestForSetting()
-                    vm.detail = transDiaryToLocal(data)
-                    setTitle(`${vm.detail.title} - 日记`)
-                    vm.editor.edited = false
+                    vm.requestForSetting(() => {
+                        vm.detail = transDiaryToLocal(data)
+                        setTitle(`${vm.detail.title} - 日记`)
+                        vm.editor.edited = false
+                    })
                 }
             },
             saveEditor() {

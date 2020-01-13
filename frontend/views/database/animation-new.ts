@@ -663,6 +663,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
 
                 function submitCover(file: File, callback?: (ok) => void) {
                     if (file != null) client.cover.animation(vm.editId, file, (ok) => {
+                        $('#animation-new #file-upload').val(null)
                         if (callback != undefined) callback(ok)
                     })
                     else if (callback != undefined) callback(true)
