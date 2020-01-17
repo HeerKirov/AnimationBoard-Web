@@ -27,7 +27,8 @@ function createStaffDetailVue(selectName: string, location: {mode: string, tab: 
                 originName: null,
                 isOrganization: null,
                 nameError: null,
-                originNameError: null
+                originNameError: null,
+                remarkError: null
             },
             ui: {
                 loading: false,
@@ -115,6 +116,7 @@ function createStaffDetailVue(selectName: string, location: {mode: string, tab: 
                     this.data.name = backend.name
                     this.data.originName = backend.origin_name
                     this.data.isOrganization = backend.is_organization
+                    this.data.remark = backend.remark
                 }
             },
             refreshEditor() {
@@ -125,6 +127,7 @@ function createStaffDetailVue(selectName: string, location: {mode: string, tab: 
                     this.editor.isOrganization = backend.is_organization
                     this.editor.nameError = null
                     this.editor.originNameError = null
+                    this.editor.remarkError = null
                 }
             },
             //编辑逻辑
@@ -143,9 +146,13 @@ function createStaffDetailVue(selectName: string, location: {mode: string, tab: 
                     this.editor.originNameError = '原名的长度不能超过64。'
                     ok = false
                 }
+                if(this.editor.remaerk && this.editor.remark.length > 64) {
+                    this.editor.originNameError = '备注的长度不能超过64。'
+                    ok = false
+                }
                 if(ok) {
                     this.ui.loading = true
-                    let data = {name: this.editor.name.trim(), origin_name: this.editor.originName || null, is_organization: this.editor.isOrganization}
+                    let data = {name: this.editor.name.trim(), origin_name: this.editor.originName || null, remark: this.editor.remark || null, is_organization: this.editor.isOrganization}
                     client.database.staffs.update(this.id, data, (ok, s, d) => {
                         this.ui.loading = false
                         if(ok) {

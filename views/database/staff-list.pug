@@ -45,6 +45,7 @@ div.ui.segment(v-if='!panel.errorInfo')
                         th 名字
                         th 类型
                         th 原名
+                        th 备注
                 tbody
                     tr(v-for='item in data')
                         td
@@ -52,6 +53,7 @@ div.ui.segment(v-if='!panel.errorInfo')
                         td
                             i.icon(:class='item.is_organization ? "building outline" : "user"')
                         td {{item.origin_name}}
+                        td {{item.remark}}
         div.two.wide.column
     //下方的分页器
     div.ui.two.column.grid(v-if='pagination.maxPageIndex > 1 || pagination.pageIndex > pagination.maxPageIndex')

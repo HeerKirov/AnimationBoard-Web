@@ -18,6 +18,7 @@ div.ui.segment(v-show='!ui.errorInfo && !ui.editMode')
                         i.icon(:class='data.isOrganization ? "building outline" : "user"')
                         div.content {{data.name}}
                             div.sub.header {{data.originName}}
+                            div.sub.header {{data.remark}}
 
                     h2.ui.header(v-if='editMode')
                         i.icon(:class='editor.isOrganization ? "building outline" : "user"')
@@ -27,6 +28,8 @@ div.ui.segment(v-show='!ui.errorInfo && !ui.editMode')
                                 div.ui.top.pointing.red.basic.label(v-if='editor.nameError') {{editor.nameError}}
                                 input(type='text', placeholder='原语言中的名字', style='margin-top: 5px', v-model='editor.originName')
                                 div.ui.top.pointing.red.basic.label(v-if='editor.originNameError') {{editor.originNameError}}
+                                input(type='text', placeholder='非正式的备注', style='margin-top: 5px', v-model='editor.remark')
+                                div.ui.top.pointing.red.basic.label(v-if='editor.remarkError') {{editor.remarkError}}
                                 div.ui.buttons(style='margin-top: 5px')
                                     button.ui.blue.icon.button(@click='editor.isOrganization = true', :class='{basic: editor.isOrganization != true}')
                                         i.building.outline.icon

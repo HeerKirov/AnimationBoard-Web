@@ -51,7 +51,7 @@ function createStaffNewVue(selectName: string, location: {mode: string, tab: str
                     if(item.name == null || !item.name.trim()) throwErr('nameError', '名字不能为空。')
                     else if(item.name.length > 64) throwErr('nameError', '名字的长度不能超过64。')
                     if(item.originName != null && item.originName.length > 64) throwErr('originNameError', '原名的长度不能超过64。')
-                    if(item.remark != null && item.remark.length > 64) throwErr('remarkError', '原名的长度不能超过64。')
+                    if(item.remark != null && item.remark.length > 64) throwErr('remarkError', '备注的长度不能超过64。')
                     if(item.isOrganization == null) throwErr('isOrgError', '必须选择类型。')
                 }
                 return ok
