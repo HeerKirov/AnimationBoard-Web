@@ -996,7 +996,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                     let count = parseInt(this.ui.publishPlan.newWeekItemCount)
                     let interval = parseInt(this.ui.publishPlan.newWeekInterval)
                     if (count > 0 && interval > 0) {
-                        let timestamp = new Date(this.ui.publishPlan.newWeekTime).getTime()
+                        let timestamp = new Date(this.ui.publishPlan.newWeekTime.replace(/-/g, '/')).getTime()
                         for (let i = 0; i < count; ++i) {
                             let d = new Date(timestamp + 1000 * 60 * 60 * 24 * interval * i)
                             vm.$set(this.data.publishPlan, this.data.publishPlan.length, formatDateMinuteToStr(d))
