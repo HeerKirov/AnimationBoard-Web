@@ -584,7 +584,7 @@ function createAnimationNewVue(selectName: string, location: {mode: string, tab:
                     published_quantity: data.publishedQuantity ? parseInt(data.publishedQuantity) : null,
                     publish_plan: mapArray(data.publishPlan, (date) => {
                         function fmt(n) {return n < 10 ? `0${n}` : n}
-                        let d = new Date(date)
+                        let d = new Date(date.replace(/-/g, '/'))
                         return `${d.getUTCFullYear()}-${fmt(d.getUTCMonth() + 1)}-${fmt(d.getUTCDate())}T${fmt(d.getUTCHours())}:${fmt(d.getUTCMinutes())}:${fmt(d.getUTCSeconds())}Z`
                     }),
                     subtitle_list: mapArray(data.subtitleList, (subtitle) => subtitle.value),
